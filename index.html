@@ -3,180 +3,198 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MM Automation — Inventory Management</title>
+<title>MM Automation — BOH Management</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#080c12;--bg2:#0d1118;--bg-card:#111827;--bg-hover:#161f2e;
-  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
-  --red:#E8432A;--red-dim:rgba(232,67,42,0.15);--red-glow:rgba(232,67,42,0.35);
-  --gold:#D4A843;--gold-dim:rgba(212,168,67,0.15);
-  --green:#10B981;--green-dim:rgba(16,185,129,0.12);
-  --amber:#F59E0B;--amber-dim:rgba(245,158,11,0.12);
-  --text:#e8eaed;--sub:#8b95a5;--dim:#404854;--r:8px;
-  --sidebar:240px;
+  --bg:#f8fafc;--bg-card:#ffffff;--bg-hover:#f1f5f9;--bg-active:#eff6ff;
+  --border:#e2e8f0;--border-md:#cbd5e1;
+  --blue:#2563eb;--blue-dim:rgba(37,99,235,0.08);--blue-light:#dbeafe;
+  --green:#059669;--green-dim:rgba(5,150,105,0.08);--green-light:#d1fae5;
+  --amber:#d97706;--amber-dim:rgba(217,119,6,0.08);--amber-light:#fef3c7;
+  --red:#dc2626;--red-dim:rgba(220,38,38,0.08);--red-light:#fee2e2;
+  --purple:#7c3aed;--purple-dim:rgba(124,58,237,0.08);--purple-light:#ede9fe;
+  --text:#0f172a;--text-sub:#64748b;--text-dim:#94a3b8;
+  --sidebar:232px;--r:8px;--r-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,0.08);
 }
-body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;min-height:100vh;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
-
-/* ── Login ─────────────────────────────── */
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
 #login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}
 .login-wrap{width:100%;max-width:380px;padding:24px}
 .login-brand{text-align:center;margin-bottom:32px}
-.login-brand img{width:120px;height:auto;margin-bottom:12px}
-.login-brand h1{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:0.06em;color:var(--text)}
-.login-brand p{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.2em;color:var(--sub);text-transform:uppercase}
-.login-card{background:var(--bg-card);border:1px solid var(--border2);border-radius:12px;padding:32px}
-.login-card h2{font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.14em;text-transform:uppercase;color:var(--sub);margin-bottom:20px;text-align:center}
-.pin-dots{display:flex;gap:12px;justify-content:center;margin-bottom:28px}
-.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border2);background:transparent;transition:all 0.2s}
-.pin-dot.filled{background:var(--red);border-color:var(--red);box-shadow:0 0 10px var(--red-glow)}
-.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.pin-btn{background:var(--bg-hover);border:1px solid var(--border);color:var(--text);font-family:'Oswald',sans-serif;font-size:20px;border-radius:var(--r);padding:16px;cursor:pointer;transition:all 0.15s;text-align:center}
-.pin-btn:hover{background:var(--red-dim);border-color:var(--red);color:var(--red)}
-.pin-btn:active{transform:scale(0.95)}
-.pin-btn.clear{font-size:11px;font-family:'Inter',sans-serif;letter-spacing:0.08em;text-transform:uppercase;color:var(--sub)}
-.pin-error{color:var(--red);font-size:12px;text-align:center;margin-top:12px;min-height:18px}
-.role-tabs{display:flex;gap:8px;margin-bottom:24px}
-.role-tab{flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--sub);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
-.role-tab.active{background:var(--red-dim);border-color:var(--red);color:var(--red)}
-
-/* ── Layout ─────────────────────────────── */
-#app{display:none;height:100vh;position:relative;z-index:1}
-.layout{display:flex;height:100vh}
-
-/* ── Sidebar ─────────────────────────────── */
-.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
-.sidebar-head{padding:20px 16px;border-bottom:1px solid var(--border)}
-.sidebar-logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:0.06em;color:var(--text);line-height:1}
-.sidebar-sub{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.18em;color:var(--sub);text-transform:uppercase;margin-top:2px}
-.sidebar-role{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:3px 10px;border-radius:20px;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.1em;text-transform:uppercase}
-.sidebar-role.manager{background:var(--red-dim);color:var(--red);border:1px solid rgba(232,67,42,0.25)}
-.sidebar-role.staff{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(212,168,67,0.25)}
-.nav{flex:1;padding:12px 0}
-.nav-section{padding:8px 16px 4px;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--dim)}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-left:3px solid transparent;transition:all 0.15s;font-size:13px;color:var(--sub)}
+.login-brand h1{font-size:22px;font-weight:700;letter-spacing:-0.02em;color:var(--text)}
+.login-brand h1 span{color:var(--blue)}
+.login-brand p{font-size:12px;color:var(--text-sub);margin-top:4px}
+.login-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:28px;box-shadow:var(--shadow-md)}
+.login-card h2{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-sub);text-align:center;margin-bottom:20px}
+.role-tabs{display:flex;gap:4px;margin-bottom:22px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:3px}
+.role-tab{flex:1;padding:7px;border-radius:6px;border:none;background:transparent;color:var(--text-sub);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.role-tab.active{background:var(--bg-card);color:var(--blue);box-shadow:var(--shadow);font-weight:600}
+.pin-dots{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
+.pin-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--border-md);background:transparent;transition:all .15s}
+.pin-dot.filled{background:var(--blue);border-color:var(--blue)}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pin-btn{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:18px;font-weight:500;border-radius:var(--r);padding:14px;cursor:pointer;transition:all .12s}
+.pin-btn:hover{background:var(--bg-hover);border-color:var(--border-md)}
+.pin-btn:active{transform:scale(.95)}
+.pin-btn.action{font-size:12px;color:var(--text-sub)}
+.pin-error{color:var(--red);font-size:12px;text-align:center;margin-top:10px;min-height:18px}
+#app{display:none;height:100vh}
+.layout{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:var(--sidebar);background:var(--bg-card);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sidebar-head{padding:16px;border-bottom:1px solid var(--border)}
+.sidebar-brand{font-size:15px;font-weight:700;letter-spacing:-.02em}
+.sidebar-brand span{color:var(--blue)}
+.sidebar-tagline{font-size:11px;color:var(--text-dim);margin-top:1px}
+.sidebar-role{display:inline-flex;align-items:center;margin-top:8px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.sidebar-role.manager{background:var(--blue-dim);color:var(--blue)}
+.sidebar-role.staff{background:var(--green-dim);color:var(--green)}
+.nav{flex:1;padding:8px 0}
+.nav-section{padding:14px 14px 4px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim)}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;cursor:pointer;border-radius:var(--r);margin:1px 6px;color:var(--text-sub);font-size:13px;font-weight:500;transition:all .12s}
 .nav-item:hover{background:var(--bg-hover);color:var(--text)}
-.nav-item.active{background:var(--red-dim);border-left-color:var(--red);color:var(--text)}
-.nav-item svg{width:16px;height:16px;flex-shrink:0}
-.sidebar-foot{padding:16px;border-top:1px solid var(--border)}
-.logout-btn{width:100%;padding:9px;background:transparent;border:1px solid var(--border2);border-radius:var(--r);color:var(--sub);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.nav-item.active{background:var(--bg-active);color:var(--blue)}
+.nav-item svg{width:15px;height:15px;flex-shrink:0}
+.sidebar-foot{padding:12px;border-top:1px solid var(--border)}
+.logout-btn{width:100%;padding:8px;background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--text-sub);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
 .logout-btn:hover{border-color:var(--red);color:var(--red)}
-
-/* ── Main ─────────────────────────────────── */
+.logout-btn svg{width:14px;height:14px}
 .main{flex:1;overflow-y:auto;padding:28px 32px}
 .page{display:none}.page.active{display:block}
-.page-head{margin-bottom:28px}
-.page-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:0.04em;color:var(--text);line-height:1}
-.page-sub{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.16em;color:var(--sub);text-transform:uppercase;margin-top:4px}
-
-/* ── Cards ─────────────────────────────────── */
-.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:20px}
-.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
-.card-title{font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:var(--sub)}
-.card-actions{display:flex;gap:8px}
-
-/* ── KPI Grid ───────────────────────────────── */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
-.kpi{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:20px;position:relative;overflow:hidden}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.kpi.red::before{background:var(--red)}
-.kpi.gold::before{background:var(--gold)}
-.kpi.green::before{background:var(--green)}
-.kpi.amber::before{background:var(--amber)}
-.kpi-label{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--sub);margin-bottom:8px}
-.kpi-val{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:0.02em;line-height:1;color:var(--text)}
-.kpi-detail{font-size:11px;color:var(--sub);margin-top:6px}
-
-/* ── Buttons ─────────────────────────────────── */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r);border:none;cursor:pointer;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;transition:all 0.2s}
-.btn svg{width:14px;height:14px}
-.btn-primary{background:var(--red);color:#fff}.btn-primary:hover{background:#d63220;box-shadow:0 4px 16px var(--red-glow)}
-.btn-secondary{background:var(--bg-hover);color:var(--sub);border:1px solid var(--border)}.btn-secondary:hover{color:var(--text);border-color:var(--border2)}
-.btn-ghost{background:transparent;color:var(--sub);border:1px solid var(--border)}.btn-ghost:hover{color:var(--text);border-color:var(--border2)}
-.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(232,67,42,0.25)}.btn-danger:hover{background:var(--red);color:#fff}
-.btn-sm{padding:5px 10px;font-size:11px}
-
-/* ── Badges ─────────────────────────────────── */
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
-.badge-red{background:var(--red-dim);color:var(--red)}
-.badge-green{background:var(--green-dim);color:var(--green)}
-.badge-gold{background:var(--gold-dim);color:var(--gold)}
-.badge-amber{background:var(--amber-dim);color:var(--amber)}
-
-/* ── Table ─────────────────────────────────── */
+.page-head{margin-bottom:22px}
+.page-title{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.page-sub{font-size:12px;color:var(--text-sub);margin-top:3px}
+.page-head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:22px}
+.page-actions{display:flex;gap:8px;flex-shrink:0}
+.mobile-bar{display:none;align-items:center;gap:10px;margin-bottom:16px}
+.menu-btn{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:7px;cursor:pointer;color:var(--text);display:inline-flex}
+.menu-btn svg{width:16px;height:16px}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;margin-bottom:16px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.card-title{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-sub)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px}
+.kpi-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.kpi-icon svg{width:15px;height:15px}
+.kpi-icon.blue{background:var(--blue-dim)}.kpi-icon.blue svg{color:var(--blue)}
+.kpi-icon.green{background:var(--green-dim)}.kpi-icon.green svg{color:var(--green)}
+.kpi-icon.amber{background:var(--amber-dim)}.kpi-icon.amber svg{color:var(--amber)}
+.kpi-icon.red{background:var(--red-dim)}.kpi-icon.red svg{color:var(--red)}
+.kpi-icon.purple{background:var(--purple-dim)}.kpi-icon.purple svg{color:var(--purple)}
+.kpi-val{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.kpi-label{font-size:12px;color:var(--text-sub);margin-top:4px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r);border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;transition:all .15s;white-space:nowrap}
+.btn svg{width:14px;height:14px;flex-shrink:0}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#1d4ed8}
+.btn-secondary{background:var(--bg-card);border:1px solid var(--border);color:var(--text-sub)}.btn-secondary:hover{background:var(--bg-hover);color:var(--text);border-color:var(--border-md)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-sub)}.btn-ghost:hover{color:var(--text);border-color:var(--border-md)}
+.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(220,38,38,.2)}.btn-danger:hover{background:var(--red);color:#fff}
+.btn-success{background:var(--green-dim);color:var(--green);border:1px solid rgba(5,150,105,.2)}.btn-success:hover{background:var(--green);color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-icon{background:transparent;border:1px solid var(--border);border-radius:var(--r);padding:6px;cursor:pointer;color:var(--text-sub);display:inline-flex;align-items:center;transition:all .15s}.btn-icon:hover{border-color:var(--blue);color:var(--blue)}
+.btn-icon svg{width:13px;height:13px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-purple{background:var(--purple-light);color:var(--purple)}
+.badge-gray{background:var(--bg-hover);color:var(--text-sub)}
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
-thead tr{background:var(--bg-hover)}
-th{padding:10px 12px;text-align:left;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--sub);border-bottom:1px solid var(--border2);white-space:nowrap}
+thead tr{background:var(--bg)}
+th{padding:9px 12px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text-sub);border-bottom:1px solid var(--border);white-space:nowrap}
 td{padding:11px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:var(--bg-hover)}
-.td-dim{color:var(--sub)}
-
-/* ── Search / Filters ─────────────────────── */
-.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.search-wrap{position:relative;flex:1;min-width:200px}
-.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--dim);pointer-events:none}
-.search-input{width:100%;padding:8px 12px 8px 32px;background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px}
-.search-input:focus{outline:none;border-color:var(--red)}
-.filter-pills{display:flex;gap:6px;flex-wrap:wrap}
-.pill{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--sub);font-size:12px;cursor:pointer;transition:all 0.15s}
-.pill:hover{border-color:var(--red);color:var(--red)}
-.pill.active{background:var(--red-dim);border-color:var(--red);color:var(--red)}
-
-/* ── Form / Modal ─────────────────────────── */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center}
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text-dim);pointer-events:none}
+.search-input{width:100%;padding:8px 10px 8px 30px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;font-family:inherit}
+.search-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
+.filter-pills{display:flex;gap:5px;flex-wrap:wrap}
+.pill{padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-sub);font-size:12px;font-weight:500;cursor:pointer;transition:all .12s;font-family:inherit}
+.pill:hover{border-color:var(--blue);color:var(--blue)}
+.pill.active{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:200;align-items:center;justify-content:center;padding:16px}
 .modal-overlay.open{display:flex}
-.modal{background:var(--bg-card);border:1px solid var(--border2);border-radius:12px;padding:28px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
-.modal-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:0.04em;margin-bottom:20px}
+.modal{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md)}
+.modal-lg{max-width:660px}
+.modal-title{font-size:17px;font-weight:700;letter-spacing:-.01em;margin-bottom:18px}
+.modal-section{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-sub);margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-group{margin-bottom:14px}
-.form-group label{display:block;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--sub);margin-bottom:6px}
-.form-control{width:100%;padding:9px 12px;background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px}
-.form-control:focus{outline:none;border-color:var(--red)}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:11px;font-weight:600;color:var(--text-sub);margin-bottom:5px}
+.form-control{width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;font-family:inherit;transition:border-color .12s}
+.form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
 .form-control option{background:var(--bg-card)}
-.modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
-
-/* ── Stock indicator ───────────────────────── */
-.stock-bar-wrap{width:100px}
-.stock-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
-.stock-fill{height:100%;border-radius:2px;transition:width 0.3s}
-
-/* ── Alerts ─────────────────────────────────── */
-.alert-list{display:flex;flex-direction:column;gap:8px}
-.alert-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--red-dim);border:1px solid rgba(232,67,42,0.25);border-radius:var(--r)}
-.alert-item svg{width:16px;height:16px;color:var(--red);flex-shrink:0}
-.alert-item .ai-name{font-weight:500;flex:1}
-.alert-item .ai-detail{font-size:12px;color:var(--sub)}
-
-/* ── Chart container ───────────────────────── */
-.chart-wrap{position:relative;height:260px}
-
-/* ── Print ─────────────────────────────────── */
-@media print{
-  #login-screen,#app .sidebar,.card-actions,.btn,nav{display:none!important}
-  body{background:#fff;color:#000}
-  .page{display:block!important}
-  .card{border:1px solid #ddd;page-break-inside:avoid}
-  th,td{color:#000;border-color:#ddd}
-}
-
-/* ── Responsive ─────────────────────────────── */
-@media(max-width:768px){
-  .sidebar{position:fixed;left:-260px;top:0;bottom:0;z-index:50;transition:left 0.25s}
-  .sidebar.open{left:0}
-  .main{padding:16px}
-  .form-row{grid-template-columns:1fr}
-  .kpi-grid{grid-template-columns:1fr 1fr}
-  .mobile-menu{display:flex}
-  .two-col{grid-template-columns:1fr!important}
-}
-.mobile-menu{display:none;align-items:center;gap:10px;margin-bottom:16px}
-.menu-btn{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:8px;cursor:pointer;color:var(--text)}
+textarea.form-control{resize:vertical;min-height:72px}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+.stock-bar-wrap{width:72px;display:inline-block}
+.stock-bar{height:5px;background:var(--border);border-radius:3px;overflow:visible}
+.stock-fill{height:100%;border-radius:3px;transition:width .3s}
+.sched-wrap{overflow-x:auto}
+.sched-grid{display:grid;grid-template-columns:140px repeat(7,minmax(105px,1fr));min-width:890px;border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+.sched-th{padding:8px 10px;background:var(--bg);border-bottom:1px solid var(--border);border-right:1px solid var(--border);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-sub)}
+.sched-th:last-child,.sched-cell:last-child{border-right:none}
+.sched-label{background:var(--bg);border-right:2px solid var(--border-md);padding:10px;font-size:12px;font-weight:600;border-bottom:1px solid var(--border);display:flex;align-items:flex-start}
+.sched-cell{padding:5px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);min-height:50px;cursor:pointer;transition:background .1s}
+.sched-cell:hover{background:var(--bg-active)}
+.sched-row:last-child .sched-label,.sched-row:last-child .sched-cell{border-bottom:none}
+.shift-chip{border-radius:4px;padding:2px 6px;font-size:11px;font-weight:500;margin:1px 0;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shift-chip.regular{background:var(--blue-light);color:var(--blue)}
+.shift-chip.training{background:var(--purple-light);color:var(--purple)}
+.sched-add{color:var(--text-dim);font-size:18px;text-align:center;line-height:1;opacity:0;padding-top:4px}
+.sched-cell:hover .sched-add{opacity:1}
+.vendor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:16px}
+.vendor-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;transition:border-color .15s}
+.vendor-card:hover{border-color:var(--blue)}
+.vendor-name{font-size:14px;font-weight:600;margin-bottom:4px}
+.vendor-detail{font-size:12px;color:var(--text-sub);display:flex;align-items:center;gap:5px;margin-top:3px}
+.vendor-detail svg{width:12px;height:12px;flex-shrink:0}
+.vendor-actions{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.recipe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-bottom:16px}
+.recipe-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;cursor:pointer;transition:all .15s}
+.recipe-card:hover{border-color:var(--blue);box-shadow:var(--shadow)}
+.recipe-name{font-size:14px;font-weight:600}
+.recipe-meta{font-size:12px;color:var(--text-sub);margin-top:3px}
+.recipe-cost{font-size:13px;font-weight:600;color:var(--green);margin-top:8px}
+.recipe-actions{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.po-line{display:grid;grid-template-columns:1fr 80px 80px 28px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
+.po-line:last-child{border-bottom:none}
+.po-total-row{display:flex;justify-content:flex-end;gap:10px;align-items:center;padding-top:10px;font-size:13px;font-weight:600}
+.ing-row{display:grid;grid-template-columns:1fr 80px 80px 28px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)}
+.ing-row:last-child{border-bottom:none}
+.clean-area-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-sub);padding:10px 0 4px}
+.clean-task{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.clean-task:last-child{border-bottom:none}
+.clean-check{width:18px;height:18px;border:2px solid var(--border-md);border-radius:4px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.clean-check.done{background:var(--green);border-color:var(--green)}
+.clean-check.done svg{color:#fff;width:11px;height:11px}
+.clean-task-name{flex:1;font-size:13px}
+.clean-task-name.done{text-decoration:line-through;color:var(--text-dim)}
+.clean-by{font-size:11px;color:var(--text-dim)}
+.alert-feed{display:flex;flex-direction:column;gap:6px}
+.alert-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);border:1px solid}
+.alert-row.red{background:var(--red-dim);border-color:rgba(220,38,38,.2)}
+.alert-row.amber{background:var(--amber-dim);border-color:rgba(217,119,6,.2)}
+.alert-row.blue{background:var(--blue-dim);border-color:rgba(37,99,235,.2)}
+.alert-row svg{width:14px;height:14px;flex-shrink:0}
+.alert-row.red svg{color:var(--red)}.alert-row.amber svg{color:var(--amber)}.alert-row.blue svg{color:var(--blue)}
+.alert-text{flex:1;font-size:13px;font-weight:500}
+.activity-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.activity-row:last-child{border-bottom:none}
+.activity-row svg{width:14px;height:14px;flex-shrink:0;color:var(--text-dim)}
+.chart-wrap{position:relative;height:240px}
+.temp-station-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.temp-station-row:last-child{border-bottom:none}
+@media print{#login-screen,#app .sidebar,.btn,.modal-overlay{display:none!important}.main{padding:0}body{background:#fff;color:#000}.page{display:block!important}.card{border:1px solid #ddd;page-break-inside:avoid;box-shadow:none}}
+@media(max-width:768px){.sidebar{position:fixed;left:-260px;top:0;bottom:0;z-index:50;transition:left .22s;box-shadow:var(--shadow-md)}.sidebar.open{left:0}.main{padding:16px}.mobile-bar{display:flex}.form-row,.two-col{grid-template-columns:1fr}.kpi-grid{grid-template-columns:1fr 1fr}.page-head-row{flex-direction:column}}
 </style>
 </head>
 <body>
@@ -185,8 +203,8 @@ tbody tr:hover td{background:var(--bg-hover)}
 <div id="login-screen">
   <div class="login-wrap">
     <div class="login-brand">
-      <h1>MM Automation</h1>
-      <p>Inventory Management</p>
+      <h1>MM <span>Automation</span></h1>
+      <p>Back of House Management</p>
     </div>
     <div class="login-card">
       <div class="role-tabs">
@@ -194,11 +212,9 @@ tbody tr:hover td{background:var(--bg-hover)}
         <button class="role-tab" onclick="setRole('staff')">Staff</button>
       </div>
       <h2>Enter PIN</h2>
-      <div class="pin-dots" id="pin-dots">
-        <div class="pin-dot" id="d0"></div>
-        <div class="pin-dot" id="d1"></div>
-        <div class="pin-dot" id="d2"></div>
-        <div class="pin-dot" id="d3"></div>
+      <div class="pin-dots">
+        <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+        <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
       </div>
       <div class="pin-grid">
         <button class="pin-btn" onclick="pinPress('1')">1</button>
@@ -210,9 +226,9 @@ tbody tr:hover td{background:var(--bg-hover)}
         <button class="pin-btn" onclick="pinPress('7')">7</button>
         <button class="pin-btn" onclick="pinPress('8')">8</button>
         <button class="pin-btn" onclick="pinPress('9')">9</button>
-        <button class="pin-btn clear" onclick="pinClear()">Clear</button>
+        <button class="pin-btn action" onclick="pinClear()">Clear</button>
         <button class="pin-btn" onclick="pinPress('0')">0</button>
-        <button class="pin-btn clear" onclick="pinBack()">&#9003;</button>
+        <button class="pin-btn action" onclick="pinBack()">&#9003;</button>
       </div>
       <div class="pin-error" id="pin-error"></div>
     </div>
@@ -220,220 +236,309 @@ tbody tr:hover td{background:var(--bg-hover)}
 </div>
 
 <!-- APP -->
-<div id="app">
-  <div class="layout">
+<div id="app"><div class="layout">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-head">
-        <div class="sidebar-logo">MM Automation</div>
-        <div class="sidebar-sub">Inventory Management</div>
-        <div class="sidebar-role manager" id="role-badge">Manager</div>
-      </div>
-      <nav class="nav">
-        <div class="nav-section">Operations</div>
-        <div class="nav-item active" onclick="nav('dashboard')">
-          <i data-lucide="layout-dashboard"></i> Dashboard
-        </div>
-        <div class="nav-item" onclick="nav('inventory')">
-          <i data-lucide="package"></i> Inventory
-        </div>
-        <div class="nav-item" onclick="nav('receiving')">
-          <i data-lucide="truck"></i> Receiving
-        </div>
-        <div class="nav-item" onclick="nav('waste')">
-          <i data-lucide="trash-2"></i> Waste Log
-        </div>
-        <div class="nav-section manager-only">Reports & Admin</div>
-        <div class="nav-item manager-only" onclick="nav('reports')">
-          <i data-lucide="bar-chart-2"></i> Reports
-        </div>
-        <div class="nav-item manager-only" onclick="nav('settings')">
-          <i data-lucide="settings"></i> Settings
-        </div>
-      </nav>
-      <div class="sidebar-foot">
-        <button class="logout-btn" onclick="logout()">
-          <i data-lucide="log-out"></i> Sign Out
-        </button>
-      </div>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main">
-      <div class="mobile-menu">
-        <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
-          <i data-lucide="menu"></i>
-        </button>
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.04em">MM Automation</span>
-      </div>
-
-      <!-- DASHBOARD -->
-      <div id="page-dashboard" class="page active">
-        <div class="page-head">
-          <div class="page-title">Dashboard</div>
-          <div class="page-sub" id="dash-date"></div>
-        </div>
-        <div class="kpi-grid" id="kpi-grid"></div>
-        <div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-          <div class="card">
-            <div class="card-head"><span class="card-title">Low Stock Alerts</span></div>
-            <div id="alert-list" class="alert-list"></div>
-          </div>
-          <div class="card">
-            <div class="card-head"><span class="card-title">Recent Activity</span></div>
-            <div id="recent-activity"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- INVENTORY -->
-      <div id="page-inventory" class="page">
-        <div class="page-head">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between">
-            <div>
-              <div class="page-title">Inventory</div>
-              <div class="page-sub">Current stock levels</div>
-            </div>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-secondary" onclick="printCount()"><i data-lucide="printer"></i> Count Sheet</button>
-              <button class="btn btn-primary manager-only" onclick="openItemModal()"><i data-lucide="plus"></i> Add Item</button>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="toolbar">
-            <div class="search-wrap">
-              <i data-lucide="search"></i>
-              <input class="search-input" placeholder="Search items..." oninput="renderInventory()" id="inv-search">
-            </div>
-            <div class="filter-pills" id="inv-filters"></div>
-          </div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr>
-                <th>Item</th><th>Category</th><th>Unit</th><th>Par</th><th>On Hand</th><th>Status</th><th class="manager-only">Cost/Unit</th><th class="manager-only">Total Value</th><th class="manager-only">Actions</th>
-              </tr></thead>
-              <tbody id="inv-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- RECEIVING -->
-      <div id="page-receiving" class="page">
-        <div class="page-head">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between">
-            <div><div class="page-title">Receiving</div><div class="page-sub">Log deliveries &amp; update stock</div></div>
-            <button class="btn btn-primary" onclick="openReceiveModal()"><i data-lucide="plus"></i> Log Delivery</button>
-          </div>
-        </div>
-        <div class="card">
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Date</th><th>Item</th><th>Qty Received</th><th>Unit</th><th>Vendor</th><th>Cost</th><th>Logged By</th></tr></thead>
-              <tbody id="recv-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- WASTE -->
-      <div id="page-waste" class="page">
-        <div class="page-head">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between">
-            <div><div class="page-title">Waste Log</div><div class="page-sub">Track spoilage &amp; waste</div></div>
-            <button class="btn btn-primary" onclick="openWasteModal()"><i data-lucide="plus"></i> Log Waste</button>
-          </div>
-        </div>
-        <div class="card">
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Date</th><th>Item</th><th>Qty</th><th>Unit</th><th>Reason</th><th>Est. Cost</th><th>Logged By</th></tr></thead>
-              <tbody id="waste-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- REPORTS -->
-      <div id="page-reports" class="page">
-        <div class="page-head"><div class="page-title">Reports</div><div class="page-sub">Cost, waste &amp; variance analysis</div></div>
-        <div class="kpi-grid" id="report-kpis"></div>
-        <div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
-          <div class="card"><div class="card-head"><span class="card-title">Stock vs Par by Category</span></div><div class="chart-wrap"><canvas id="chart-par"></canvas></div></div>
-          <div class="card"><div class="card-head"><span class="card-title">Waste by Category</span></div><div class="chart-wrap"><canvas id="chart-waste"></canvas></div></div>
-        </div>
-        <div class="card"><div class="card-head"><span class="card-title">Inventory Value by Category</span></div><div class="chart-wrap"><canvas id="chart-value"></canvas></div></div>
-      </div>
-
-      <!-- SETTINGS -->
-      <div id="page-settings" class="page">
-        <div class="page-head"><div class="page-title">Settings</div><div class="page-sub">PINs, categories &amp; preferences</div></div>
-        <div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-          <div class="card">
-            <div class="card-head"><span class="card-title">PIN Management</span></div>
-            <div class="form-group"><label>Manager PIN</label><input class="form-control" id="mgr-pin" type="password" maxlength="4" placeholder="4-digit PIN"></div>
-            <div class="form-group"><label>Staff PIN</label><input class="form-control" id="staff-pin" type="password" maxlength="4" placeholder="4-digit PIN"></div>
-            <button class="btn btn-primary" onclick="savePins()"><i data-lucide="save"></i> Save PINs</button>
-            <div id="pin-save-msg" style="margin-top:10px;font-size:12px;color:var(--green)"></div>
-          </div>
-          <div class="card">
-            <div class="card-head"><span class="card-title">Categories</span><button class="btn btn-sm btn-primary" onclick="addCategory()"><i data-lucide="plus"></i> Add</button></div>
-            <div id="cat-list"></div>
-          </div>
-        </div>
-        <div class="card" style="margin-top:0">
-          <div class="card-head"><span class="card-title">Waste Reasons</span><button class="btn btn-sm btn-primary" onclick="addReason()"><i data-lucide="plus"></i> Add</button></div>
-          <div id="reason-list" style="display:flex;gap:8px;flex-wrap:wrap;padding-top:4px"></div>
-        </div>
-      </div>
-    </main>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <div class="sidebar-brand">MM <span>Automation</span></div>
+    <div class="sidebar-tagline">BOH Management</div>
+    <div class="sidebar-role manager" id="role-badge">Manager</div>
   </div>
-</div>
+  <nav class="nav">
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" onclick="nav('dashboard')"><i data-lucide="layout-dashboard"></i>Dashboard</div>
+    <div class="nav-section">Operations</div>
+    <div class="nav-item" onclick="nav('inventory')"><i data-lucide="package"></i>Inventory</div>
+    <div class="nav-item" onclick="nav('receiving')"><i data-lucide="truck"></i>Receiving</div>
+    <div class="nav-item" onclick="nav('waste')"><i data-lucide="trash-2"></i>Waste Log</div>
+    <div class="nav-item" onclick="nav('scheduling')"><i data-lucide="calendar"></i>Scheduling</div>
+    <div class="nav-section">Supply Chain</div>
+    <div class="nav-item" onclick="nav('vendors')"><i data-lucide="building-2"></i>Vendors &amp; POs</div>
+    <div class="nav-item" onclick="nav('recipes')"><i data-lucide="chef-hat"></i>Recipes</div>
+    <div class="nav-section">Compliance</div>
+    <div class="nav-item" onclick="nav('templogs')"><i data-lucide="thermometer"></i>Temp Logs</div>
+    <div class="nav-item" onclick="nav('cleaning')"><i data-lucide="sparkles"></i>Cleaning</div>
+    <div class="nav-item" onclick="nav('prepsheets')"><i data-lucide="clipboard-list"></i>Prep Sheets</div>
+    <div class="nav-item" onclick="nav('incidents')"><i data-lucide="alert-triangle"></i>Incidents</div>
+    <div class="nav-section manager-only">Admin</div>
+    <div class="nav-item manager-only" onclick="nav('reports')"><i data-lucide="bar-chart-2"></i>Reports</div>
+    <div class="nav-item manager-only" onclick="nav('settings')"><i data-lucide="settings"></i>Settings</div>
+  </nav>
+  <div class="sidebar-foot">
+    <button class="logout-btn" onclick="logout()"><i data-lucide="log-out"></i>Sign Out</button>
+  </div>
+</aside>
 
-<!-- ITEM MODAL -->
+<main class="main">
+  <div class="mobile-bar">
+    <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')"><i data-lucide="menu"></i></button>
+    <span style="font-size:15px;font-weight:700">MM <span style="color:var(--blue)">Automation</span></span>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="page-dashboard" class="page active">
+    <div class="page-head-row">
+      <div><div class="page-title">Dashboard</div><div class="page-sub" id="dash-date"></div></div>
+    </div>
+    <div class="kpi-grid" id="dash-kpis"></div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-head"><span class="card-title">Alerts</span><span id="alert-count" class="badge badge-red" style="display:none"></span></div>
+        <div class="alert-feed" id="alert-feed"><div style="color:var(--text-dim);font-size:13px">No alerts.</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">Recent Activity</span></div>
+        <div id="recent-activity"></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-head"><span class="card-title">Today's Schedule</span></div>
+        <div id="dash-schedule"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">Open Incidents</span></div>
+        <div id="dash-incidents"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVENTORY -->
+  <div id="page-inventory" class="page">
+    <div class="page-head-row">
+      <div><div class="page-title">Inventory</div><div class="page-sub">Stock levels vs par</div></div>
+      <div class="page-actions">
+        <button class="btn btn-secondary" onclick="printInventory()"><i data-lucide="printer"></i>Count Sheet</button>
+        <button class="btn btn-primary manager-only" onclick="openItemModal()"><i data-lucide="plus"></i>Add Item</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="toolbar">
+        <div class="search-wrap"><i data-lucide="search"></i><input class="search-input" id="inv-search" placeholder="Search items or SKU…" oninput="renderInventory()"></div>
+        <div class="filter-pills" id="inv-filters"></div>
+      </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr>
+          <th>Item</th><th>Category</th><th>Unit</th><th>On Hand</th><th>Par</th><th>Status</th>
+          <th class="manager-only">Cost/Unit</th><th class="manager-only">Value</th><th class="manager-only"></th>
+        </tr></thead>
+        <tbody id="inv-body"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- RECEIVING -->
+  <div id="page-receiving" class="page">
+    <div class="page-head-row">
+      <div><div class="page-title">Receiving</div><div class="page-sub">Log deliveries and update stock</div></div>
+      <button class="btn btn-primary" onclick="openReceiveModal()"><i data-lucide="plus"></i>Log Delivery</button>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Item</th><th>Qty</th><th>Unit</th><th>Vendor</th><th>Cost</th><th>PO #</th><th>Logged By</th></tr></thead>
+      <tbody id="recv-body"></tbody>
+    </table></div></div>
+  </div>
+
+  <!-- WASTE -->
+  <div id="page-waste" class="page">
+    <div class="page-head-row">
+      <div><div class="page-title">Waste Log</div><div class="page-sub">Track spoilage and waste</div></div>
+      <button class="btn btn-primary" onclick="openWasteModal()"><i data-lucide="plus"></i>Log Waste</button>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Item</th><th>Qty</th><th>Unit</th><th>Reason</th><th>Est. Cost</th><th>Logged By</th></tr></thead>
+      <tbody id="waste-body"></tbody>
+    </table></div></div>
+  </div>
+
+  <!-- SCHEDULING -->
+  <div id="page-scheduling" class="page">
+    <div class="page-head-row">
+      <div><div class="page-title">Scheduling</div><div class="page-sub" id="sched-sub"></div></div>
+      <div class="page-actions">
+        <button class="btn btn-secondary" onclick="prevWeek()"><i data-lucide="chevron-left"></i></button>
+        <span style="font-size:14px;font-weight:600;padding:0 6px;align-self:center" id="sched-week-label"></span>
+        <button class="btn btn-secondary" onclick="nextWeek()"><i data-lucide="chevron-right"></i></button>
+      </div>
+    </div>
+    <div class="card" style="padding:12px">
+      <div class="sched-wrap"><div class="sched-grid" id="sched-grid"></div></div>
+    </div>
+  </div>
+
+  <!-- VENDORS -->
+  <div id="page-vendors" class="page">
+    <div class="page-head-row">
+      <div><div class="page-title">Vendors &amp; POs</div><div class="page-sub">Suppliers and purchase orders</div></div>
+      <div class="page-actions">
+        <button class="btn btn-secondary manager-only" onclick="openVendorModal()"><i data-lucide="plus"></i>Add Vendor</button>
+        <button class="btn btn-primary manager-only" onclick="openPOModal()"><i data-lucide="file-plus"></i>New PO</button>
+      </div>
+    </div>
+    <div class="vendor-grid" id="vendor-grid"></div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Purchase Orders</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>PO #</th><th>Date</th><th>Vendor</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead>
+        <tbody id="po-body"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- RECIPES -->
+  <div id="page-recipes" class="page">
+    <div class="page-head-row">
+      <div><div class="page-title">Recipes</div><div class="page-sub">Costed cards linked to inventory</div></div>
+      <button class="btn btn-primary manager-only" onclick="openRecipeModal()"><i data-lucide="plus"></i>Add Recipe</button>
+    </div>
+    <div class="toolbar">
+      <div class="search-wrap"><i data-lucide="search"></i><input class="search-input" id="rec-search" placeholder="Search recipes…" oninput="renderRecipes()"></div>
+    </div>
+    <div class="recipe-grid" id="recipe-grid"></div>
+  </div>
+
+  <!-- TEMP LOGS -->
+  <div id="page-templogs" class="page">
+    <div class="page-head-row">
+      <div><div class="page-title">Temperature Logs</div><div class="page-sub">HACCP compliance monitoring</div></div>
+      <button class="btn btn-primary" onclick="openTempModal()"><i data-lucide="plus"></i>Log Reading</button>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>Date / Time</th><th>Station</th><th>Reading</th><th>Target Range</th><th>Status</th><th>Logged By</th></tr></thead>
+      <tbody id="temp-body"></tbody>
+    </table></div></div>
+  </div>
+
+  <!-- CLEANING -->
+  <div id="page-cleaning" class="page">
+    <div class="page-head-row">
+      <div><div class="page-title">Cleaning &amp; Sanitation</div><div class="page-sub">Daily task checklists</div></div>
+      <div class="page-actions">
+        <button class="btn btn-secondary manager-only" onclick="resetCleaning()"><i data-lucide="rotate-ccw"></i>Reset Day</button>
+        <button class="btn btn-primary manager-only" onclick="openCleanTaskModal()"><i data-lucide="plus"></i>Add Task</button>
+      </div>
+    </div>
+    <div id="cleaning-sections"></div>
+  </div>
+
+  <!-- PREP SHEETS -->
+  <div id="page-prepsheets" class="page">
+    <div class="page-head-row">
+      <div><div class="page-title">Prep Sheets</div><div class="page-sub">Daily production records</div></div>
+      <button class="btn btn-primary manager-only" onclick="openPrepItemModal()"><i data-lucide="plus"></i>Add Item</button>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>Item</th><th>Unit</th><th>Needed</th><th>Completed</th><th>Initials</th><th>Status</th><th class="manager-only"></th></tr></thead>
+      <tbody id="prep-body"></tbody>
+    </table></div></div>
+  </div>
+
+  <!-- INCIDENTS -->
+  <div id="page-incidents" class="page">
+    <div class="page-head-row">
+      <div><div class="page-title">Incident Reports</div><div class="page-sub">Employee, customer &amp; food safety</div></div>
+      <button class="btn btn-primary" onclick="openIncidentModal()"><i data-lucide="plus"></i>Log Incident</button>
+    </div>
+    <div class="card">
+      <div class="toolbar"><div class="filter-pills" id="inc-filters"></div></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Date</th><th>Type</th><th>Severity</th><th>Description</th><th>Reported By</th><th>Status</th><th></th></tr></thead>
+        <tbody id="inc-body"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- REPORTS -->
+  <div id="page-reports" class="page">
+    <div class="page-head"><div class="page-title">Reports</div><div class="page-sub">Cost, labor, waste &amp; variance</div></div>
+    <div class="kpi-grid" id="report-kpis"></div>
+    <div class="two-col">
+      <div class="card"><div class="card-head"><span class="card-title">Stock vs Par (Top 10)</span></div><div class="chart-wrap"><canvas id="chart-par"></canvas></div></div>
+      <div class="card"><div class="card-head"><span class="card-title">Waste by Category</span></div><div class="chart-wrap"><canvas id="chart-waste"></canvas></div></div>
+    </div>
+    <div class="two-col">
+      <div class="card"><div class="card-head"><span class="card-title">Inventory Value by Category</span></div><div class="chart-wrap"><canvas id="chart-value"></canvas></div></div>
+      <div class="card"><div class="card-head"><span class="card-title">Incidents by Type</span></div><div class="chart-wrap"><canvas id="chart-incidents"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="page-settings" class="page">
+    <div class="page-head"><div class="page-title">Settings</div><div class="page-sub">PINs, roles &amp; preferences</div></div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-head"><span class="card-title">PIN Management</span></div>
+        <div class="form-group"><label>Manager PIN</label><input class="form-control" id="mgr-pin" type="password" maxlength="4" placeholder="4-digit PIN"></div>
+        <div class="form-group"><label>Staff PIN</label><input class="form-control" id="staff-pin" type="password" maxlength="4" placeholder="4-digit PIN"></div>
+        <button class="btn btn-primary btn-sm" onclick="savePins()"><i data-lucide="save"></i>Save PINs</button>
+        <div id="pin-save-msg" style="margin-top:8px;font-size:12px"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">Scheduling Positions</span><button class="btn btn-primary btn-sm" onclick="openRoleModal()"><i data-lucide="plus"></i>Add</button></div>
+        <div id="role-list"></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-head"><span class="card-title">Inventory Categories</span><button class="btn btn-primary btn-sm" onclick="addCategory()"><i data-lucide="plus"></i>Add</button></div>
+        <div id="cat-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">Waste Reasons</span><button class="btn btn-primary btn-sm" onclick="addWasteReason()"><i data-lucide="plus"></i>Add</button></div>
+        <div id="waste-reason-list" style="display:flex;gap:6px;flex-wrap:wrap;padding-top:4px"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Temperature Stations</span><button class="btn btn-primary btn-sm" onclick="openTempStationModal()"><i data-lucide="plus"></i>Add</button></div>
+      <div id="temp-station-list"></div>
+    </div>
+  </div>
+
+</main>
+</div></div>
+
+<!-- MODALS -->
 <div class="modal-overlay" id="item-modal">
   <div class="modal">
     <div class="modal-title" id="item-modal-title">Add Item</div>
-    <input type="hidden" id="item-id">
     <div class="form-row">
       <div class="form-group"><label>Item Name</label><input class="form-control" id="f-name" placeholder="e.g. Chicken Breast"></div>
       <div class="form-group"><label>Category</label><select class="form-control" id="f-cat"></select></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Unit</label><input class="form-control" id="f-unit" placeholder="lb, case, each..."></div>
+      <div class="form-group"><label>Unit</label><input class="form-control" id="f-unit" placeholder="lbs, case, each…"></div>
       <div class="form-group"><label>Par Level</label><input class="form-control" type="number" id="f-par" min="0" step="0.1"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>On Hand</label><input class="form-control" type="number" id="f-onhand" min="0" step="0.1"></div>
-      <div class="form-group"><label>Cost per Unit ($)</label><input class="form-control" type="number" id="f-cost" min="0" step="0.01"></div>
+      <div class="form-group"><label>Cost / Unit ($)</label><input class="form-control" type="number" id="f-cost" min="0" step="0.01"></div>
     </div>
     <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" id="item-delete-btn" onclick="deleteItem()" style="margin-right:auto;display:none"><i data-lucide="trash-2"></i>Delete</button>
       <button class="btn btn-ghost" onclick="closeModal('item-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveItem()"><i data-lucide="save"></i> Save Item</button>
+      <button class="btn btn-primary" onclick="saveItem()"><i data-lucide="save"></i>Save</button>
     </div>
   </div>
 </div>
-
-<!-- RECEIVE MODAL -->
-<div class="modal-overlay" id="recv-modal">
+<div class="modal-overlay" id="receive-modal">
   <div class="modal">
     <div class="modal-title">Log Delivery</div>
     <div class="form-group"><label>Item</label><select class="form-control" id="r-item"></select></div>
     <div class="form-row">
       <div class="form-group"><label>Qty Received</label><input class="form-control" type="number" id="r-qty" min="0.1" step="0.1"></div>
-      <div class="form-group"><label>Vendor</label><input class="form-control" id="r-vendor" placeholder="Sysco, US Foods..."></div>
+      <div class="form-group"><label>Vendor</label><input class="form-control" id="r-vendor"></div>
     </div>
-    <div class="form-group"><label>Total Cost ($)</label><input class="form-control" type="number" id="r-cost" min="0" step="0.01"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Total Cost ($)</label><input class="form-control" type="number" id="r-cost" min="0" step="0.01"></div>
+      <div class="form-group"><label>PO # (optional)</label><input class="form-control" id="r-po" placeholder="PO-001"></div>
+    </div>
+    <div class="form-group"><label>Note</label><input class="form-control" id="r-note" placeholder="Temp on arrival, rejections…"></div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('recv-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveReceive()"><i data-lucide="truck"></i> Log Delivery</button>
+      <button class="btn btn-ghost" onclick="closeModal('receive-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveReceive()"><i data-lucide="truck"></i>Log Delivery</button>
     </div>
   </div>
 </div>
-
-<!-- WASTE MODAL -->
 <div class="modal-overlay" id="waste-modal">
   <div class="modal">
     <div class="modal-title">Log Waste</div>
@@ -444,417 +549,993 @@ tbody tr:hover td{background:var(--bg-hover)}
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('waste-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveWaste()"><i data-lucide="trash-2"></i> Log Waste</button>
+      <button class="btn btn-primary" onclick="saveWaste()"><i data-lucide="trash-2"></i>Log Waste</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="shift-modal">
+  <div class="modal">
+    <div class="modal-title" id="shift-modal-title">Add Shift</div>
+    <div class="form-row">
+      <div class="form-group"><label>Position</label><select class="form-control" id="sh-position"></select></div>
+      <div class="form-group"><label>Day</label><select class="form-control" id="sh-day"></select></div>
+    </div>
+    <div class="form-group"><label>Employee Name</label><input class="form-control" id="sh-employee" placeholder="First Last"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Start Time</label><input class="form-control" type="time" id="sh-start" value="09:00"></div>
+      <div class="form-group"><label>End Time</label><input class="form-control" type="time" id="sh-end" value="17:00"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" id="shift-delete-btn" onclick="deleteShift()" style="margin-right:auto;display:none"><i data-lucide="trash-2"></i>Delete</button>
+      <button class="btn btn-ghost" onclick="closeModal('shift-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveShift()"><i data-lucide="save"></i>Save Shift</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="vendor-modal">
+  <div class="modal">
+    <div class="modal-title" id="vendor-modal-title">Add Vendor</div>
+    <div class="form-row">
+      <div class="form-group"><label>Vendor Name</label><input class="form-control" id="v-name"></div>
+      <div class="form-group"><label>Contact Name</label><input class="form-control" id="v-contact"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Phone</label><input class="form-control" id="v-phone" type="tel"></div>
+      <div class="form-group"><label>Email</label><input class="form-control" id="v-email" type="email"></div>
+    </div>
+    <div class="form-group"><label>Address</label><input class="form-control" id="v-address"></div>
+    <div class="form-group"><label>Categories Supplied</label><input class="form-control" id="v-cats" placeholder="Proteins, Dairy…"></div>
+    <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" id="vendor-delete-btn" onclick="deleteVendor()" style="margin-right:auto;display:none"><i data-lucide="trash-2"></i>Delete</button>
+      <button class="btn btn-ghost" onclick="closeModal('vendor-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveVendor()"><i data-lucide="save"></i>Save</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="po-modal">
+  <div class="modal modal-lg">
+    <div class="modal-title" id="po-modal-title">New Purchase Order</div>
+    <div class="form-row">
+      <div class="form-group"><label>Vendor</label><select class="form-control" id="po-vendor"></select></div>
+      <div class="form-group"><label>Date Needed</label><input class="form-control" type="date" id="po-date"></div>
+    </div>
+    <div class="modal-section">Line Items</div>
+    <div id="po-lines"></div>
+    <button class="btn btn-secondary btn-sm" onclick="addPOLine()" style="margin-top:8px"><i data-lucide="plus"></i>Add Line</button>
+    <div class="po-total-row"><span style="color:var(--text-sub);font-weight:400">Estimated Total:</span><span id="po-est-total">$0.00</span></div>
+    <div class="form-group" style="margin-top:12px"><label>Notes</label><textarea class="form-control" id="po-notes" rows="2"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('po-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePO()"><i data-lucide="send"></i>Submit PO</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="recipe-modal">
+  <div class="modal modal-lg">
+    <div class="modal-title" id="recipe-modal-title">Add Recipe</div>
+    <div class="form-row">
+      <div class="form-group"><label>Recipe Name</label><input class="form-control" id="rec-name"></div>
+      <div class="form-group"><label>Category</label><select class="form-control" id="rec-category">
+        <option>Entree</option><option>Appetizer</option><option>Salad</option><option>Side</option><option>Dessert</option><option>Sauce / Base</option><option>Beverage</option>
+      </select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Yield Qty</label><input class="form-control" type="number" id="rec-yield-qty" min="1" value="1"></div>
+      <div class="form-group"><label>Yield Unit</label><input class="form-control" id="rec-yield-unit" placeholder="portions, lbs…"></div>
+    </div>
+    <div class="modal-section">Ingredients <span id="rec-cost-calc" style="float:right;color:var(--green);font-weight:600;font-size:13px"></span></div>
+    <div id="rec-ingredients"></div>
+    <button class="btn btn-secondary btn-sm" onclick="addRecipeIngredient()" style="margin-top:8px"><i data-lucide="plus"></i>Add Ingredient</button>
+    <div class="form-group" style="margin-top:14px"><label>Instructions</label><textarea class="form-control" id="rec-instructions" rows="3" placeholder="Step-by-step prep…"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" id="recipe-delete-btn" onclick="deleteRecipe()" style="margin-right:auto;display:none"><i data-lucide="trash-2"></i>Delete</button>
+      <button class="btn btn-ghost" onclick="closeModal('recipe-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRecipe()"><i data-lucide="save"></i>Save Recipe</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="temp-modal">
+  <div class="modal">
+    <div class="modal-title">Log Temperature Reading</div>
+    <div class="form-row">
+      <div class="form-group"><label>Station</label><select class="form-control" id="t-station"></select></div>
+      <div class="form-group"><label>Reading (°F)</label><input class="form-control" type="number" id="t-reading" step="0.1"></div>
+    </div>
+    <div class="form-group"><label>Logged By</label><input class="form-control" id="t-logged-by"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('temp-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTempLog()"><i data-lucide="thermometer"></i>Save Reading</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="incident-modal">
+  <div class="modal">
+    <div class="modal-title">Log Incident</div>
+    <div class="form-row">
+      <div class="form-group"><label>Type</label><select class="form-control" id="inc-type">
+        <option>Employee</option><option>Customer</option><option>Food Safety</option>
+      </select></div>
+      <div class="form-group"><label>Severity</label><select class="form-control" id="inc-severity">
+        <option>Low</option><option>Medium</option><option>High</option>
+      </select></div>
+    </div>
+    <div class="form-group"><label>Description</label><textarea class="form-control" id="inc-description" rows="3"></textarea></div>
+    <div class="form-group"><label>Reported By</label><input class="form-control" id="inc-reported-by"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('incident-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveIncident()"><i data-lucide="save"></i>Log Incident</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="role-modal">
+  <div class="modal">
+    <div class="modal-title">Add Position</div>
+    <div class="form-group"><label>Position Name</label><input class="form-control" id="role-name" placeholder="e.g. Line Cook, Bartender…"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <input type="checkbox" id="role-training" style="width:16px;height:16px;cursor:pointer">
+      <label for="role-training" style="margin:0;cursor:pointer;font-size:13px;color:var(--text-sub)">Training role — exclude from headcount &amp; labor totals</label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('role-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRole()"><i data-lucide="save"></i>Add Position</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="clean-task-modal">
+  <div class="modal">
+    <div class="modal-title">Add Cleaning Task</div>
+    <div class="form-group"><label>Task Name</label><input class="form-control" id="ct-name"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Area / Station</label><input class="form-control" id="ct-area" placeholder="Line, Walk-in, Bar…"></div>
+      <div class="form-group"><label>Frequency</label><select class="form-control" id="ct-freq">
+        <option>Daily</option><option>Weekly</option><option>Monthly</option>
+      </select></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('clean-task-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCleanTask()"><i data-lucide="save"></i>Add Task</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="prep-item-modal">
+  <div class="modal">
+    <div class="modal-title">Add Prep Item</div>
+    <div class="form-row">
+      <div class="form-group"><label>Item Name</label><input class="form-control" id="pi-name"></div>
+      <div class="form-group"><label>Unit</label><input class="form-control" id="pi-unit" placeholder="lbs, qt, batch…"></div>
+    </div>
+    <div class="form-group"><label>Qty Needed</label><input class="form-control" type="number" id="pi-needed" min="0" step="0.1" value="0"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('prep-item-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePrepItem()"><i data-lucide="save"></i>Add</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="temp-station-modal">
+  <div class="modal">
+    <div class="modal-title">Add Temperature Station</div>
+    <div class="form-group"><label>Station Name</label><input class="form-control" id="ts-name"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Min Temp (°F)</label><input class="form-control" type="number" id="ts-min" step="0.5"></div>
+      <div class="form-group"><label>Max Temp (°F)</label><input class="form-control" type="number" id="ts-max" step="0.5"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('temp-station-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTempStation()"><i data-lucide="save"></i>Add Station</button>
     </div>
   </div>
 </div>
 
 <script src="https://unpkg.com/lucide@latest" onload="lucide.createIcons()"></script>
 <script>
-// ── Constants ───────────────────────────────────────────────────
-const PINS={manager:'9999',staff:'1234'};
-const CATS=['Proteins','Dairy','Produce','Dry Goods','Smallwares','Chemicals'];
-const WASTE_REASONS=['Expired','Prep Waste','Over-Ordered','Dropped','Spoiled','Other'];
-const CAT_COLORS={'Proteins':'#E8432A','Dairy':'#D4A843','Produce':'#10B981','Dry Goods':'#6366f1','Smallwares':'#8b95a5','Chemicals':'#F59E0B'};
+// ── Storage ─────────────────────────────────────────────────────────────
+const S={
+  get(k){try{return JSON.parse(localStorage.getItem('boh_'+k))}catch{return null}},
+  set(k,v){localStorage.setItem('boh_'+k,JSON.stringify(v))},
+  def(k,v){if(this.get(k)===null)this.set(k,v)}
+};
 
-// ── Seed data ────────────────────────────────────────────────────
-const SEED_ITEMS=[
-  {id:1,name:'Chicken Breast',category:'Proteins',unit:'lbs',par:40,qty:28,cost:3.20,sku:'PRO-001'},
-  {id:2,name:'Ground Beef 80/20',category:'Proteins',unit:'lbs',par:30,qty:12,cost:4.80,sku:'PRO-002'},
-  {id:3,name:'Gulf Shrimp 16/20',category:'Proteins',unit:'lbs',par:15,qty:9,cost:9.50,sku:'PRO-003'},
-  {id:4,name:'Applewood Bacon',category:'Proteins',unit:'lbs',par:20,qty:22,cost:6.10,sku:'PRO-004'},
-  {id:5,name:'Heavy Cream',category:'Dairy',unit:'qt',par:12,qty:8,cost:2.40,sku:'DAI-001'},
-  {id:6,name:'Sharp Cheddar',category:'Dairy',unit:'lbs',par:18,qty:14,cost:5.20,sku:'DAI-002'},
-  {id:7,name:'Unsalted Butter',category:'Dairy',unit:'lbs',par:10,qty:6,cost:4.10,sku:'DAI-003'},
-  {id:8,name:'Sour Cream',category:'Dairy',unit:'24oz',par:8,qty:5,cost:3.80,sku:'DAI-004'},
-  {id:9,name:'Roma Tomatoes',category:'Produce',unit:'lbs',par:25,qty:18,cost:1.30,sku:'PRD-001'},
-  {id:10,name:'Romaine Lettuce',category:'Produce',unit:'cs',par:4,qty:2,cost:22.00,sku:'PRD-002'},
-  {id:11,name:'Yellow Onion',category:'Produce',unit:'lbs',par:30,qty:35,cost:0.60,sku:'PRD-003'},
-  {id:12,name:'Jalapeños',category:'Produce',unit:'lbs',par:8,qty:3,cost:1.90,sku:'PRD-004'},
-  {id:13,name:'All-Purpose Flour',category:'Dry Goods',unit:'lbs',par:50,qty:42,cost:0.55,sku:'DRY-001'},
-  {id:14,name:'Panko Breadcrumbs',category:'Dry Goods',unit:'lbs',par:20,qty:17,cost:1.80,sku:'DRY-002'},
-  {id:15,name:'Extra-Virgin Olive Oil',category:'Dry Goods',unit:'gal',par:4,qty:2,cost:28.00,sku:'DRY-003'},
-  {id:16,name:'Kosher Salt',category:'Dry Goods',unit:'lbs',par:15,qty:22,cost:0.40,sku:'DRY-004'},
-  {id:17,name:'Nitrile Gloves M',category:'Smallwares',unit:'box',par:6,qty:4,cost:12.50,sku:'SWR-001'},
-  {id:18,name:'To-Go Containers 32oz',category:'Smallwares',unit:'cs/200',par:3,qty:1,cost:38.00,sku:'SWR-002'},
-  {id:19,name:'Kraft Paper Bags',category:'Smallwares',unit:'cs/500',par:2,qty:2,cost:26.00,sku:'SWR-003'},
-  {id:20,name:'Quat Sanitizer',category:'Chemicals',unit:'gal',par:4,qty:3,cost:14.00,sku:'CHM-001'},
-  {id:21,name:'Dish Soap Concentrate',category:'Chemicals',unit:'gal',par:3,qty:1,cost:11.50,sku:'CHM-002'},
-  {id:22,name:'Degreaser Spray',category:'Chemicals',unit:'gal',par:2,qty:2,cost:16.00,sku:'CHM-003'},
-];
-const SEED_RECEIVING=[
-  {id:1,itemId:1,itemName:'Chicken Breast',qty:20,unit:'lbs',vendor:'Sysco',cost:64.00,date:'2026-04-22',loggedBy:'Maria L.'},
-  {id:2,itemId:5,itemName:'Heavy Cream',qty:6,unit:'qt',vendor:'US Foods',cost:14.40,date:'2026-04-22',loggedBy:'Maria L.'},
-  {id:3,itemId:9,itemName:'Roma Tomatoes',qty:15,unit:'lbs',vendor:'Produce Junction',cost:19.50,date:'2026-04-23',loggedBy:'Carlos R.'},
-  {id:4,itemId:2,itemName:'Ground Beef 80/20',qty:20,unit:'lbs',vendor:'Sysco',cost:96.00,date:'2026-04-24',loggedBy:'Maria L.'},
-  {id:5,itemId:18,itemName:'To-Go Containers 32oz',qty:2,unit:'cs/200',vendor:'Restaurant Depot',cost:76.00,date:'2026-04-24',loggedBy:'Carlos R.'},
-];
-const SEED_WASTE=[
-  {id:1,itemId:3,itemName:'Gulf Shrimp 16/20',qty:2,unit:'lbs',reason:'Expired',date:'2026-04-22',cost:19.00,loggedBy:'Maria L.'},
-  {id:2,itemId:10,itemName:'Romaine Lettuce',qty:0.5,unit:'cs',reason:'Spoiled',date:'2026-04-23',cost:11.00,loggedBy:'Carlos R.'},
-  {id:3,itemId:12,itemName:'Jalapeños',qty:1,unit:'lbs',reason:'Prep Waste',date:'2026-04-24',cost:1.90,loggedBy:'Maria L.'},
-  {id:4,itemId:7,itemName:'Unsalted Butter',qty:0.5,unit:'lbs',reason:'Dropped',date:'2026-04-24',cost:2.05,loggedBy:'Carlos R.'},
-];
+// ── State ────────────────────────────────────────────────────────────────
+let currentRole='manager', pinBuffer='', editingId=null, schedWeekOffset=0;
+let activeIncFilter='All', activeCatFilter='All', charts={};
 
-// ── State ─────────────────────────────────────────────────────────
-let currentRole=null,pinBuffer='',editingId=null,activeCatFilter='All';
-let chartPar=null,chartWasteChart=null,chartValue=null;
+// ── Seed ─────────────────────────────────────────────────────────────────
+const SEED={
+  pins:{manager:'9999',staff:'1234'},
+  roles:[
+    {id:'r1',name:'Manager',training:false},{id:'r2',name:'Line Cook',training:false},
+    {id:'r3',name:'Prep Cook',training:false},{id:'r4',name:'Server',training:false},
+    {id:'r5',name:'Expo',training:false},{id:'r6',name:'Bar',training:false},
+    {id:'r7',name:'Dishwasher',training:false},{id:'r8',name:'Training',training:true}
+  ],
+  categories:['Proteins','Dairy','Produce','Dry Goods','Beverages','Paper Goods','Chemicals','Frozen'],
+  wasteReasons:['Expired','Over-cooked','Dropped','Spoiled','Wrong Order','Cross-contamination'],
+  items:[
+    {id:'i1',name:'Chicken Breast',cat:'Proteins',unit:'lbs',par:40,onhand:28,cost:4.20},
+    {id:'i2',name:'Ground Beef 80/20',cat:'Proteins',unit:'lbs',par:30,onhand:12,cost:5.10},
+    {id:'i3',name:'Salmon Fillet',cat:'Proteins',unit:'lbs',par:15,onhand:9,cost:11.50},
+    {id:'i4',name:'Whole Milk',cat:'Dairy',unit:'gal',par:8,onhand:5,cost:4.80},
+    {id:'i5',name:'Heavy Cream',cat:'Dairy',unit:'qt',par:10,onhand:7,cost:3.90},
+    {id:'i6',name:'Cheddar Shredded',cat:'Dairy',unit:'lbs',par:10,onhand:3,cost:6.20},
+    {id:'i7',name:'Romaine Lettuce',cat:'Produce',unit:'case',par:4,onhand:2,cost:22.00},
+    {id:'i8',name:'Tomatoes Roma',cat:'Produce',unit:'25lb case',par:2,onhand:1,cost:18.50},
+    {id:'i9',name:'Yellow Onion',cat:'Produce',unit:'50lb bag',par:1,onhand:1,cost:24.00},
+    {id:'i10',name:'Canola Oil',cat:'Dry Goods',unit:'gal',par:5,onhand:4,cost:9.50},
+    {id:'i11',name:'All-Purpose Flour',cat:'Dry Goods',unit:'50lb bag',par:2,onhand:2,cost:28.00},
+    {id:'i12',name:'Kosher Salt',cat:'Dry Goods',unit:'lbs',par:10,onhand:8,cost:0.80},
+    {id:'i13',name:'Soda Syrup Coke',cat:'Beverages',unit:'BIB 5gal',par:3,onhand:2,cost:95.00},
+    {id:'i14',name:'Draft Beer Keg',cat:'Beverages',unit:'half-bbl',par:2,onhand:1,cost:155.00},
+    {id:'i15',name:'To-Go Containers',cat:'Paper Goods',unit:'case/200',par:4,onhand:6,cost:32.00},
+    {id:'i16',name:'Burger Buns',cat:'Dry Goods',unit:'case/72',par:3,onhand:2,cost:14.50},
+    {id:'i17',name:'Bacon Strips',cat:'Proteins',unit:'lbs',par:20,onhand:18,cost:7.20},
+    {id:'i18',name:'Frozen Fries',cat:'Frozen',unit:'30lb case',par:4,onhand:2,cost:38.00},
+    {id:'i19',name:'Sanitizer Quat',cat:'Chemicals',unit:'gal',par:3,onhand:2,cost:22.00},
+    {id:'i20',name:'Cheddar Slices',cat:'Dairy',unit:'lbs',par:8,onhand:5,cost:5.50},
+    {id:'i21',name:'Shrimp 16/20',cat:'Proteins',unit:'lbs',par:10,onhand:4,cost:13.20},
+    {id:'i22',name:'Pasta Penne',cat:'Dry Goods',unit:'10lb case',par:3,onhand:3,cost:12.00}
+  ],
+  vendors:[
+    {id:'v1',name:'Sysco Food Services',contact:'Mark Torres',phone:'(480) 555-0120',email:'mtorres@sysco.com',address:'2400 S 35th Ave, Phoenix AZ 85009',cats:'Proteins, Dairy, Produce'},
+    {id:'v2',name:'US Foods',contact:'Jennifer Walsh',phone:'(480) 555-0247',email:'jwalsh@usfoods.com',address:'4840 W Van Buren St, Phoenix AZ 85043',cats:'Dry Goods, Frozen, Paper Goods'},
+    {id:'v3',name:'Republic Services',contact:'Dave Kimura',phone:'(480) 555-0389',email:'dkimura@repserv.com',address:'Queen Creek, AZ 85142',cats:'Chemicals'}
+  ],
+  pos:[
+    {id:'po1',num:'PO-001',vendor:'v1',date:'2026-04-18',status:'Received',notes:'Weekly produce order',lines:[{item:'i7',qty:2,unit:'case',cost:22},{item:'i1',qty:20,unit:'lbs',cost:4.20}],total:128},
+    {id:'po2',num:'PO-002',vendor:'v2',date:'2026-04-22',status:'Submitted',notes:'Dry run restock',lines:[{item:'i11',qty:1,unit:'bag',cost:28},{item:'i18',qty:2,unit:'case',cost:38}],total:104},
+    {id:'po3',num:'PO-003',vendor:'v1',date:'2026-04-28',status:'Draft',notes:'',lines:[{item:'i2',qty:15,unit:'lbs',cost:5.10},{item:'i3',qty:5,unit:'lbs',cost:11.50}],total:133}
+  ],
+  recipes:[
+    {id:'rec1',name:'Classic Burger',category:'Entree',yieldQty:1,yieldUnit:'portion',ingredients:[{itemId:'i2',qty:0.5,unit:'lbs'},{itemId:'i16',qty:0.014,unit:'case/72'},{itemId:'i20',qty:0.1,unit:'lbs'}],instructions:'Form patty, season. Grill 4 min/side. Toast bun. Build with toppings.',cost:0},
+    {id:'rec2',name:'Grilled Chicken',category:'Entree',yieldQty:1,yieldUnit:'portion',ingredients:[{itemId:'i1',qty:0.5,unit:'lbs'},{itemId:'i10',qty:0.02,unit:'gal'}],instructions:'Marinate 30 min. Grill 6-7 min/side to 165°F internal.',cost:0},
+    {id:'rec3',name:'House Salad',category:'Salad',yieldQty:1,yieldUnit:'portion',ingredients:[{itemId:'i7',qty:0.04,unit:'case'},{itemId:'i8',qty:0.04,unit:'case'}],instructions:'Chop romaine, halve tomatoes. Toss with dressing.',cost:0},
+    {id:'rec4',name:'Shrimp Pasta',category:'Entree',yieldQty:1,yieldUnit:'portion',ingredients:[{itemId:'i21',qty:0.25,unit:'lbs'},{itemId:'i22',qty:0.1,unit:'case'},{itemId:'i5',qty:0.1,unit:'qt'}],instructions:'Cook pasta al dente. Sauté shrimp 2 min/side. Toss with cream sauce.',cost:0}
+  ],
+  shifts:[
+    {id:'s1',position:'r1',day:0,employee:'Maria Gonzalez',start:'08:00',end:'16:00',week:0},
+    {id:'s2',position:'r2',day:0,employee:'James Park',start:'10:00',end:'18:00',week:0},
+    {id:'s3',position:'r2',day:0,employee:'Leila Nasser',start:'14:00',end:'22:00',week:0},
+    {id:'s4',position:'r3',day:0,employee:'Darnell Brooks',start:'07:00',end:'15:00',week:0},
+    {id:'s5',position:'r4',day:0,employee:'Caitlyn Moore',start:'11:00',end:'19:00',week:0},
+    {id:'s6',position:'r5',day:0,employee:'Ryan Chu',start:'11:00',end:'19:00',week:0},
+    {id:'s7',position:'r2',day:1,employee:'James Park',start:'10:00',end:'18:00',week:0},
+    {id:'s8',position:'r3',day:1,employee:'Darnell Brooks',start:'07:00',end:'15:00',week:0},
+    {id:'s9',position:'r1',day:2,employee:'Maria Gonzalez',start:'08:00',end:'16:00',week:0},
+    {id:'s10',position:'r8',day:2,employee:'Tyler Webb',start:'09:00',end:'13:00',week:0}
+  ],
+  receiving:[
+    {id:'rcv1',date:'2026-04-22T09:15:00',item:'i1',qty:20,vendor:'Sysco',cost:84,po:'PO-001',note:'Temp 36°F on arrival',loggedBy:'Maria G.'},
+    {id:'rcv2',date:'2026-04-22T09:22:00',item:'i7',qty:2,vendor:'Sysco',cost:44,po:'PO-001',note:'',loggedBy:'Maria G.'},
+    {id:'rcv3',date:'2026-04-20T10:05:00',item:'i18',qty:2,vendor:'US Foods',cost:76,po:'',note:'',loggedBy:'James P.'}
+  ],
+  waste:[
+    {id:'w1',date:'2026-04-24T14:30:00',item:'i6',qty:1.5,reason:'Expired',loggedBy:'Leila N.'},
+    {id:'w2',date:'2026-04-23T19:45:00',item:'i2',qty:0.75,reason:'Over-cooked',loggedBy:'James P.'},
+    {id:'w3',date:'2026-04-22T11:00:00',item:'i8',qty:0.5,reason:'Spoiled',loggedBy:'Darnell B.'}
+  ],
+  tempStations:[
+    {id:'ts1',name:'Walk-In Cooler',min:34,max:40},
+    {id:'ts2',name:'Reach-In Cooler',min:34,max:41},
+    {id:'ts3',name:'Steam Table',min:165,max:185},
+    {id:'ts4',name:'Grill Surface',min:350,max:500},
+    {id:'ts5',name:'Freezer',min:-10,max:0}
+  ],
+  tempLogs:[
+    {id:'t1',station:'ts1',reading:38,loggedBy:'Maria G.',ts:'2026-04-25T07:10:00',flag:false},
+    {id:'t2',station:'ts2',reading:41,loggedBy:'Maria G.',ts:'2026-04-25T07:12:00',flag:false},
+    {id:'t3',station:'ts3',reading:172,loggedBy:'Darnell B.',ts:'2026-04-25T10:30:00',flag:false},
+    {id:'t4',station:'ts2',reading:48,loggedBy:'Leila N.',ts:'2026-04-24T15:00:00',flag:true}
+  ],
+  cleaning:[
+    {id:'cl1',name:'Clean grill surface',area:'Line',freq:'Daily',done:false,doneBy:''},
+    {id:'cl2',name:'Sanitize cutting boards',area:'Line',freq:'Daily',done:false,doneBy:''},
+    {id:'cl3',name:'Wipe down prep tables',area:'Line',freq:'Daily',done:true,doneBy:'Darnell B.'},
+    {id:'cl4',name:'Empty grease traps',area:'Line',freq:'Weekly',done:false,doneBy:''},
+    {id:'cl5',name:'Clean reach-in coolers',area:'Walk-in',freq:'Daily',done:false,doneBy:''},
+    {id:'cl6',name:'Sweep & mop walk-in',area:'Walk-in',freq:'Daily',done:false,doneBy:''},
+    {id:'cl7',name:'Clean dishwasher filter',area:'Dish',freq:'Daily',done:false,doneBy:''},
+    {id:'cl8',name:'Descale dishwasher',area:'Dish',freq:'Weekly',done:false,doneBy:''},
+    {id:'cl9',name:'Wipe bar surfaces',area:'Bar',freq:'Daily',done:true,doneBy:'Ryan C.'},
+    {id:'cl10',name:'Clean beer lines',area:'Bar',freq:'Weekly',done:false,doneBy:''}
+  ],
+  prep:[
+    {id:'pr1',name:'Burger Patties',unit:'lbs',needed:20,completed:0,initials:''},
+    {id:'pr2',name:'Shrimp (thawed/cleaned)',unit:'lbs',needed:8,completed:8,initials:'DB'},
+    {id:'pr3',name:'Romaine (chopped)',unit:'portions',needed:30,completed:15,initials:'DB'},
+    {id:'pr4',name:'Pasta (cooked)',unit:'lbs',needed:10,completed:0,initials:''},
+    {id:'pr5',name:'Cream Sauce',unit:'qt',needed:4,completed:2,initials:'DB'}
+  ],
+  incidents:[
+    {id:'inc1',type:'Employee',severity:'Low',description:'Employee slipped on wet floor near dish area. No injury. Wet floor sign placed.',reportedBy:'Maria G.',date:'2026-04-24T16:20:00',status:'Resolved'},
+    {id:'inc2',type:'Food Safety',severity:'High',description:'Reach-in cooler found at 48°F during PM temp check. All proteins discarded. Maintenance called.',reportedBy:'Leila N.',date:'2026-04-24T15:05:00',status:'Open'},
+    {id:'inc3',type:'Customer',severity:'Medium',description:'Customer reported hair in entrée. Meal comped, incident logged per policy.',reportedBy:'Caitlyn M.',date:'2026-04-23T13:40:00',status:'Resolved'}
+  ],
+  activity:[
+    {icon:'truck',text:'Received 20 lbs Chicken Breast from Sysco',ts:'2026-04-22T09:15:00'},
+    {icon:'trash-2',text:'Waste logged: 1.5 lbs Cheddar Shredded (Expired)',ts:'2026-04-24T14:30:00'},
+    {icon:'thermometer',text:'Temp flag: Reach-In Cooler at 48°F',ts:'2026-04-24T15:00:00'},
+    {icon:'alert-triangle',text:'Incident logged: Food Safety / High',ts:'2026-04-24T15:05:00'},
+    {icon:'file-plus',text:'PO-002 submitted to US Foods',ts:'2026-04-22T11:00:00'}
+  ]
+};
 
-// ── Storage ───────────────────────────────────────────────────────
-function load(key,def){try{const v=localStorage.getItem('angies_'+key);return v?JSON.parse(v):def;}catch{return def;}}
-function save(key,val){localStorage.setItem('angies_'+key,JSON.stringify(val));}
-function getItems(){return load('items',null)||initSeed();}
-function getReceiving(){return load('receiving',SEED_RECEIVING);}
-function getWaste(){return load('waste',SEED_WASTE);}
-function initSeed(){save('items',SEED_ITEMS);save('receiving',SEED_RECEIVING);save('waste',SEED_WASTE);return SEED_ITEMS;}
+// ── Bootstrap ────────────────────────────────────────────────────────────
+(function init(){
+  Object.keys(SEED).forEach(k=>S.def(k,SEED[k]));
+  calcAllRecipeCosts();
+})();
 
-// ── PIN Auth ──────────────────────────────────────────────────────
-function setRole(r){
-  currentRole=r;
-  document.querySelectorAll('.role-tab').forEach(t=>t.classList.toggle('active',t.textContent.trim().toLowerCase()===r));
-  pinBuffer='';updateDots();
+// ── Helpers ──────────────────────────────────────────────────────────────
+function uid(){return '_'+Math.random().toString(36).slice(2,10)}
+function fmtDate(iso){return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+function fmtDateTime(iso){return new Date(iso).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
+function fmtCur(n){return '$'+(+n||0).toFixed(2)}
+function fmtTime(t){if(!t)return '';const[h,m]=t.split(':').map(Number);return`${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`}
+function itemById(id){return(S.get('items')||[]).find(i=>i.id===id)||null}
+function vendorById(id){return(S.get('vendors')||[]).find(v=>v.id===id)||null}
+function roleById(id){return(S.get('roles')||[]).find(r=>r.id===id)||null}
+function stationById(id){return(S.get('tempStations')||[]).find(s=>s.id===id)||null}
+function addActivity(icon,text){const a=S.get('activity')||[];a.unshift({icon,text,ts:new Date().toISOString()});S.set('activity',a.slice(0,30))}
+function icons(){lucide.createIcons()}
+
+// ── PIN Auth ─────────────────────────────────────────────────────────────
+function setRole(role){
+  currentRole=role; pinBuffer=''; updateDots();
   document.getElementById('pin-error').textContent='';
+  document.querySelectorAll('.role-tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
 }
-function pinPress(d){
-  if(pinBuffer.length>=4)return;
-  pinBuffer+=d;updateDots();
-  if(pinBuffer.length===4)setTimeout(checkPin,150);
-}
-function pinBack(){pinBuffer=pinBuffer.slice(0,-1);updateDots();}
-function pinClear(){pinBuffer='';updateDots();}
-function updateDots(){
-  for(let i=0;i<4;i++){const dot=document.getElementById('d'+i);if(dot)dot.classList.toggle('filled',i<pinBuffer.length);}
-}
+function pinPress(d){if(pinBuffer.length>=4)return;pinBuffer+=d;updateDots();if(pinBuffer.length===4)checkPin()}
+function pinBack(){pinBuffer=pinBuffer.slice(0,-1);updateDots()}
+function pinClear(){pinBuffer='';updateDots();document.getElementById('pin-error').textContent=''}
+function updateDots(){for(let i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('filled',i<pinBuffer.length)}
 function checkPin(){
-  const pins=load('pins',null)||{manager:'9999',staff:'1234'};
-  if(pinBuffer===pins[currentRole]){
+  const pins=S.get('pins')||SEED.pins;
+  if(pinBuffer===(currentRole==='manager'?pins.manager:pins.staff)){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='block';
-    const badge=document.getElementById('role-badge');
-    badge.textContent=currentRole==='manager'?'Manager':'Staff';
-    badge.className='sidebar-role '+(currentRole==='manager'?'manager':'staff');
-    document.querySelectorAll('.manager-only').forEach(el=>el.style.display=currentRole==='manager'?'':'none');
-    nav('dashboard');
+    applyRole(); nav('dashboard');
   } else {
     document.getElementById('pin-error').textContent='Incorrect PIN. Try again.';
-    pinBuffer='';updateDots();
-    setTimeout(()=>{document.getElementById('pin-error').textContent='';},2200);
+    pinBuffer=''; setTimeout(updateDots,80);
   }
+}
+function applyRole(){
+  const b=document.getElementById('role-badge');
+  b.textContent=currentRole==='manager'?'Manager':'Staff';
+  b.className='sidebar-role '+(currentRole==='manager'?'manager':'staff');
+  document.querySelectorAll('.manager-only').forEach(el=>el.style.display=currentRole==='manager'?'':'none');
 }
 function logout(){
-  currentRole=null;pinBuffer='';
-  document.getElementById('login-screen').style.display='flex';
+  pinBuffer=''; updateDots();
+  document.getElementById('pin-error').textContent='';
   document.getElementById('app').style.display='none';
-  updateDots();setRole('manager');
+  document.getElementById('login-screen').style.display='flex';
+  document.querySelectorAll('.role-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  currentRole='manager';
 }
 
-// ── Navigation ────────────────────────────────────────────────────
+// ── Navigation ───────────────────────────────────────────────────────────
 function nav(page){
+  if((page==='reports'||page==='settings')&&currentRole!=='manager')return;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const pg=document.getElementById('page-'+page);
+  if(pg)pg.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>{
-    const m=n.getAttribute('onclick')?.match(/nav\('(\w+)'\)/);
-    if(m)n.classList.toggle('active',m[1]===page);
+    if((n.getAttribute('onclick')||'').includes("'"+page+"'"))n.classList.add('active');
   });
-  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));
-  if(page==='dashboard')renderDashboard();
-  else if(page==='inventory'){initCatFilters();renderInventory();}
-  else if(page==='receiving')renderReceiving();
-  else if(page==='waste')renderWaste();
-  else if(page==='reports')renderReports();
-  else if(page==='settings')renderSettings();
-  lucide.createIcons();
+  document.getElementById('sidebar').classList.remove('open');
+  const map={
+    dashboard:renderDashboard,
+    inventory:()=>{initCatFilters();renderInventory()},
+    receiving:renderReceiving,
+    waste:renderWaste,
+    scheduling:renderScheduling,
+    vendors:()=>{renderVendors();renderPOs()},
+    recipes:renderRecipes,
+    templogs:renderTempLogs,
+    cleaning:renderCleaning,
+    prepsheets:renderPrepSheets,
+    incidents:renderIncidents,
+    reports:renderReports,
+    settings:renderSettings
+  };
+  if(map[page])map[page]();
+  icons();
 }
 
-// ── Helpers ───────────────────────────────────────────────────────
-function stockPct(it){return Math.min(100,Math.round(it.qty/it.par*100));}
-function stockStatus(it){
-  const p=it.qty/it.par;
-  if(p<=0.25)return{label:'Critical',cls:'badge-red',bar:'#E8432A'};
-  if(p<=0.5)return{label:'Low',cls:'badge-amber',bar:'#F59E0B'};
-  if(p>=1.3)return{label:'Excess',cls:'badge-gold',bar:'#D4A843'};
-  return{label:'OK',cls:'badge-green',bar:'#10B981'};
-}
-function fmtDate(d){return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
-function fmtCur(n){return'$'+Number(n).toFixed(2);}
-function totalValue(items){return items.reduce((s,i)=>s+i.qty*i.cost,0);}
-
-// ── Dashboard ──────────────────────────────────────────────────────
+// ── Dashboard ────────────────────────────────────────────────────────────
 function renderDashboard(){
-  const items=getItems(),waste=getWaste(),recv=getReceiving();
-  const low=items.filter(i=>i.qty/i.par<=0.5);
-  const critical=items.filter(i=>i.qty/i.par<=0.25);
-  const stockVal=totalValue(items);
-  const wasteVal=waste.reduce((s,w)=>s+w.cost,0);
-  const d=new Date();
-  document.getElementById('dash-date').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-  document.getElementById('kpi-grid').innerHTML=`
-    <div class="kpi red"><div class="kpi-label">Total Items</div><div class="kpi-val">${items.length}</div><div class="kpi-detail">across ${CATS.filter(c=>items.some(i=>i.category===c)).length} categories</div></div>
-    <div class="kpi amber"><div class="kpi-label">Low Stock</div><div class="kpi-val">${low.length}</div><div class="kpi-detail">${critical.length} critical right now</div></div>
-    <div class="kpi green"><div class="kpi-label">Stock Value</div><div class="kpi-val">${fmtCur(stockVal)}</div><div class="kpi-detail">on-hand estimate</div></div>
-    <div class="kpi gold"><div class="kpi-label">Waste Logged</div><div class="kpi-val">${fmtCur(wasteVal)}</div><div class="kpi-detail">${waste.length} incidents total</div></div>`;
-  const alertEl=document.getElementById('alert-list');
-  if(low.length===0){
-    alertEl.innerHTML='<div style="color:var(--sub);padding:8px 0;font-size:13px">All items above par threshold.</div>';
-  } else {
-    alertEl.innerHTML=low.sort((a,b)=>a.qty/a.par-b.qty/b.par).slice(0,6).map(it=>{
-      const s=stockStatus(it);
-      return`<div class="alert-item"><i data-lucide="${it.qty/it.par<=0.25?'alert-circle':'alert-triangle'}"></i><span class="ai-name">${it.name}</span><span class="ai-detail">${it.qty} / ${it.par} ${it.unit}</span><span class="badge ${s.cls}" style="margin-left:auto">${s.label}</span></div>`;
-    }).join('');
-  }
-  document.getElementById('recent-activity').innerHTML=[...recv].reverse().slice(0,5).map(r=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-      <i data-lucide="truck" style="width:14px;height:14px;color:var(--green);flex-shrink:0"></i>
-      <span style="flex:1;font-weight:500">${r.itemName}</span>
-      <span style="color:var(--sub)">+${r.qty} ${r.unit}</span>
-      <span style="color:var(--dim);font-size:11px;margin-left:8px">${fmtDate(r.date)}</span>
-    </div>`).join('');
-  lucide.createIcons();
+  document.getElementById('dash-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const items=S.get('items')||[], incidents=S.get('incidents')||[], shifts=S.get('shifts')||[];
+  const belowPar=items.filter(i=>i.onhand<i.par).length;
+  const critical=items.filter(i=>i.onhand<=i.par*0.5&&i.onhand<i.par).length;
+  const totalVal=items.reduce((s,i)=>s+(i.onhand*i.cost),0);
+  const openInc=incidents.filter(i=>i.status==='Open').length;
+  document.getElementById('dash-kpis').innerHTML=`
+    <div class="kpi"><div class="kpi-icon blue"><i data-lucide="package"></i></div><div class="kpi-val">${items.length}</div><div class="kpi-label">Total Items</div></div>
+    <div class="kpi"><div class="kpi-icon amber"><i data-lucide="alert-circle"></i></div><div class="kpi-val">${belowPar}</div><div class="kpi-label">Below Par</div></div>
+    <div class="kpi"><div class="kpi-icon red"><i data-lucide="trending-down"></i></div><div class="kpi-val">${critical}</div><div class="kpi-label">Critical Low</div></div>
+    <div class="kpi"><div class="kpi-icon green"><i data-lucide="dollar-sign"></i></div><div class="kpi-val">${fmtCur(totalVal)}</div><div class="kpi-label">Inv. Value</div></div>
+    <div class="kpi"><div class="kpi-icon red"><i data-lucide="alert-triangle"></i></div><div class="kpi-val">${openInc}</div><div class="kpi-label">Open Incidents</div></div>`;
+  // Alerts
+  const alerts=[];
+  items.filter(i=>i.onhand<=0).forEach(i=>alerts.push({cls:'red',icon:'alert-circle',text:`<strong>${i.name}</strong> is out of stock`}));
+  items.filter(i=>i.onhand>0&&i.onhand<=i.par*0.5).forEach(i=>alerts.push({cls:'red',icon:'trending-down',text:`<strong>${i.name}</strong> critical — ${i.onhand} ${i.unit} (par ${i.par})`}));
+  items.filter(i=>i.onhand>i.par*0.5&&i.onhand<i.par).forEach(i=>alerts.push({cls:'amber',icon:'alert-circle',text:`<strong>${i.name}</strong> below par — ${i.onhand}/${i.par} ${i.unit}`}));
+  (S.get('tempLogs')||[]).filter(t=>t.flag).forEach(t=>{const st=stationById(t.station);alerts.push({cls:'red',icon:'thermometer',text:`Temp flag: <strong>${st?st.name:'station'}</strong> at ${t.reading}°F`})});
+  incidents.filter(i=>i.status==='Open'&&i.severity==='High').forEach(i=>alerts.push({cls:'red',icon:'alert-triangle',text:`Open incident: <strong>${i.type}</strong> — ${i.description.slice(0,55)}…`}));
+  const feed=document.getElementById('alert-feed'), cnt=document.getElementById('alert-count');
+  if(alerts.length){cnt.style.display='';cnt.textContent=alerts.length;feed.innerHTML=alerts.slice(0,8).map(a=>`<div class="alert-row ${a.cls}"><i data-lucide="${a.icon}"></i><span class="alert-text">${a.text}</span></div>`).join('')}
+  else{cnt.style.display='none';feed.innerHTML='<div style="color:var(--text-dim);font-size:13px">No alerts.</div>'}
+  // Activity
+  const acts=S.get('activity')||[];
+  document.getElementById('recent-activity').innerHTML=acts.slice(0,8).map(a=>`<div class="activity-row"><i data-lucide="${a.icon}"></i><span style="flex:1">${a.text}</span><span style="color:var(--text-dim);font-size:11px;white-space:nowrap">${fmtDateTime(a.ts)}</span></div>`).join('')||'<div style="color:var(--text-dim);font-size:13px">No activity yet.</div>';
+  // Today schedule (day index 0 of current week)
+  const todayS=shifts.filter(s=>s.week===schedWeekOffset&&s.day===new Date().getDay());
+  document.getElementById('dash-schedule').innerHTML=todayS.length?todayS.map(s=>{const r=roleById(s.position);return`<div class="activity-row"><i data-lucide="user"></i><span style="flex:1"><strong>${s.employee}</strong> — ${r?r.name:'?'}</span><span style="color:var(--text-dim);font-size:11px">${fmtTime(s.start)}–${fmtTime(s.end)}</span></div>`}).join(''):'<div style="color:var(--text-dim);font-size:13px">No shifts today.</div>';
+  // Open incidents
+  const oi=incidents.filter(i=>i.status==='Open');
+  document.getElementById('dash-incidents').innerHTML=oi.length?oi.map(i=>`<div class="activity-row"><i data-lucide="alert-triangle"></i><span style="flex:1"><strong>${i.type}</strong> — ${i.description.slice(0,55)}${i.description.length>55?'…':''}</span><span class="badge badge-${i.severity==='High'?'red':i.severity==='Medium'?'amber':'blue'}">${i.severity}</span></div>`).join(''):'<div style="color:var(--text-dim);font-size:13px">No open incidents.</div>';
 }
 
-// ── Inventory ─────────────────────────────────────────────────────
-function renderInventory(){
-  let items=getItems();
-  const search=(document.getElementById('inv-search')?.value||'').toLowerCase();
-  if(activeCatFilter!=='All')items=items.filter(i=>i.category===activeCatFilter);
-  if(search)items=items.filter(i=>i.name.toLowerCase().includes(search)||i.sku.toLowerCase().includes(search));
-  const isManager=currentRole==='manager';
-  document.getElementById('inv-body').innerHTML=items.map(it=>{
-    const s=stockStatus(it);const pct=stockPct(it);
-    return`<tr>
-      <td><div style="font-weight:500">${it.name}</div><div style="font-size:11px;color:var(--sub)">${it.sku}</div></td>
-      <td><span style="font-size:11px;padding:2px 8px;border-radius:20px;background:var(--bg-hover);color:var(--sub)">${it.category}</span></td>
-      <td style="color:var(--sub)">${it.unit}</td>
-      <td style="color:var(--sub)">${it.par}</td>
-      <td><span style="font-size:16px;font-weight:600">${it.qty}</span></td>
-      <td><div style="display:flex;align-items:center;gap:8px"><span class="badge ${s.cls}">${s.label}</span><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:${pct}%;background:${s.bar}"></div></div></div></div></td>
-      <td style="color:var(--sub)">${isManager?fmtCur(it.cost):'—'}</td>
-      <td style="color:var(--sub)">${isManager?fmtCur(it.qty*it.cost):'—'}</td>
-      <td class="manager-only" style="display:${isManager?'':'none'}">${isManager?`<button class="btn btn-sm btn-ghost" onclick="openItemModal(${it.id})"><i data-lucide="pencil"></i></button>`:''}</td>
-    </tr>`;
-  }).join('');
-  document.querySelectorAll('th.manager-only').forEach(el=>el.style.display=isManager?'':'none');
-  lucide.createIcons();
-}
+// ── Inventory ────────────────────────────────────────────────────────────
 function initCatFilters(){
-  const container=document.getElementById('inv-filters');
-  if(!container)return;
-  container.innerHTML=['All',...CATS].map(c=>`<button class="pill${c===activeCatFilter?' active':''}" onclick="setCatFilter('${c}')">${c}</button>`).join('');
+  const cats=S.get('categories')||[];
+  document.getElementById('inv-filters').innerHTML=['All',...cats].map(c=>`<button class="pill${activeCatFilter===c?' active':''}" onclick="setCatFilter('${c}')">${c}</button>`).join('');
 }
-function setCatFilter(c){
-  activeCatFilter=c;
-  document.querySelectorAll('#inv-filters .pill').forEach(p=>p.classList.toggle('active',p.textContent===c));
-  renderInventory();
+function setCatFilter(cat){activeCatFilter=cat;initCatFilters();renderInventory()}
+function renderInventory(){
+  const items=S.get('items')||[];
+  const q=(document.getElementById('inv-search')||{}).value?.toLowerCase()||'';
+  const filtered=items.filter(i=>(!q||i.name.toLowerCase().includes(q)||i.cat.toLowerCase().includes(q))&&(activeCatFilter==='All'||i.cat===activeCatFilter));
+  const isM=currentRole==='manager';
+  document.getElementById('inv-body').innerHTML=filtered.map(i=>{
+    const pct=Math.min(100,Math.round((i.onhand/i.par)*100));
+    const barColor=i.onhand<=0?'var(--red)':i.onhand<i.par?'var(--amber)':'var(--green)';
+    const status=i.onhand<=0?'<span class="badge badge-red">Out</span>':i.onhand<=i.par*0.5?'<span class="badge badge-red">Critical</span>':i.onhand<i.par?'<span class="badge badge-amber">Low</span>':'<span class="badge badge-green">OK</span>';
+    return`<tr><td><strong>${i.name}</strong></td><td>${i.cat}</td><td>${i.unit}</td>
+      <td><div style="display:flex;align-items:center;gap:8px">${i.onhand}<div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:${pct}%;background:${barColor}"></div></div></div></div></td>
+      <td>${i.par}</td><td>${status}</td>
+      ${isM?`<td>${fmtCur(i.cost)}</td><td>${fmtCur(i.onhand*i.cost)}</td><td><button class="btn-icon" onclick="openItemModal('${i.id}')"><i data-lucide="pencil"></i></button></td>`:''}
+    </tr>`;
+  }).join('')||`<tr><td colspan="${isM?9:6}" style="text-align:center;color:var(--text-dim);padding:24px">No items found.</td></tr>`;
+  icons();
 }
-function printCount(){window.print();}
-
-// ── Receiving ─────────────────────────────────────────────────────
-function renderReceiving(){
-  const log=getReceiving();
-  document.getElementById('recv-body').innerHTML=[...log].reverse().map(r=>`<tr>
-    <td>${fmtDate(r.date)}</td>
-    <td><span style="font-weight:500">${r.itemName}</span></td>
-    <td>${r.qty}</td>
-    <td style="color:var(--sub)">${r.unit||'—'}</td>
-    <td style="color:var(--sub)">${r.vendor||'—'}</td>
-    <td>${r.cost?fmtCur(r.cost):'—'}</td>
-    <td style="color:var(--sub);font-size:12px">${r.loggedBy}</td>
-  </tr>`).join('');
-}
-function openReceiveModal(){
-  const items=getItems();
-  document.getElementById('r-item').innerHTML=items.map(i=>`<option value="${i.id}">${i.name} (${i.unit})</option>`).join('');
-  document.getElementById('r-qty').value='';
-  document.getElementById('r-vendor').value='';
-  document.getElementById('r-cost').value='';
-  document.getElementById('recv-modal').classList.add('open');
-}
-function saveReceive(){
-  const items=getItems();
-  const itemId=parseInt(document.getElementById('r-item').value);
-  const qty=parseFloat(document.getElementById('r-qty').value);
-  const vendor=document.getElementById('r-vendor').value.trim();
-  const cost=parseFloat(document.getElementById('r-cost').value)||0;
-  if(!itemId||isNaN(qty)||qty<=0){alert('Select an item and enter a valid quantity.');return;}
-  const it=items.find(i=>i.id===itemId);
-  const log=getReceiving();
-  log.push({id:Date.now(),itemId,itemName:it.name,qty,unit:it.unit,vendor:vendor||'Unknown',cost,date:new Date().toISOString().split('T')[0],loggedBy:currentRole==='manager'?'Manager':'Staff'});
-  save('receiving',log);
-  const idx=items.findIndex(i=>i.id===itemId);
-  if(idx>-1){items[idx].qty=Math.round((items[idx].qty+qty)*10)/10;}
-  save('items',items);
-  closeModal('recv-modal');
-  renderReceiving();
-}
-
-// ── Waste ──────────────────────────────────────────────────────────
-function renderWaste(){
-  const log=getWaste();
-  document.getElementById('waste-body').innerHTML=[...log].reverse().map(w=>`<tr>
-    <td>${fmtDate(w.date)}</td>
-    <td><span style="font-weight:500">${w.itemName}</span></td>
-    <td>${w.qty}</td>
-    <td style="color:var(--sub)">${w.unit}</td>
-    <td><span class="badge badge-red">${w.reason}</span></td>
-    <td>${fmtCur(w.cost)}</td>
-    <td style="color:var(--sub);font-size:12px">${w.loggedBy}</td>
-  </tr>`).join('');
-}
-function openWasteModal(){
-  const items=getItems();
-  document.getElementById('w-item').innerHTML=items.map(i=>`<option value="${i.id}">${i.name} (${i.unit})</option>`).join('');
-  document.getElementById('w-qty').value='';
-  document.getElementById('w-reason').innerHTML=WASTE_REASONS.map(r=>`<option>${r}</option>`).join('');
-  document.getElementById('waste-modal').classList.add('open');
-}
-function saveWaste(){
-  const items=getItems();
-  const itemId=parseInt(document.getElementById('w-item').value);
-  const qty=parseFloat(document.getElementById('w-qty').value);
-  const reason=document.getElementById('w-reason').value;
-  if(!itemId||isNaN(qty)||qty<=0){alert('Select an item and enter a valid quantity.');return;}
-  const it=items.find(i=>i.id===itemId);
-  const log=getWaste();
-  log.push({id:Date.now(),itemId,itemName:it.name,qty,unit:it.unit,reason,date:new Date().toISOString().split('T')[0],cost:Math.round(qty*it.cost*100)/100,loggedBy:currentRole==='manager'?'Manager':'Staff'});
-  save('waste',log);
-  const idx=items.findIndex(i=>i.id===itemId);
-  if(idx>-1){items[idx].qty=Math.max(0,Math.round((items[idx].qty-qty)*10)/10);}
-  save('items',items);
-  closeModal('waste-modal');
-  renderWaste();
-}
-
-// ── Reports ───────────────────────────────────────────────────────
-function renderReports(){
-  const items=getItems(),waste=getWaste(),recv=getReceiving();
-  const stockVal=totalValue(items);
-  const wasteVal=waste.reduce((s,w)=>s+w.cost,0);
-  const recvVal=recv.reduce((s,r)=>s+(r.cost||0),0);
-  const low=items.filter(i=>i.qty/i.par<=0.5).length;
-  document.getElementById('report-kpis').innerHTML=`
-    <div class="kpi green"><div class="kpi-label">Total Stock Value</div><div class="kpi-val">${fmtCur(stockVal)}</div><div class="kpi-detail">${items.length} items tracked</div></div>
-    <div class="kpi red"><div class="kpi-label">Total Waste Cost</div><div class="kpi-val">${fmtCur(wasteVal)}</div><div class="kpi-detail">${waste.length} incidents</div></div>
-    <div class="kpi gold"><div class="kpi-label">Total Received ($)</div><div class="kpi-val">${fmtCur(recvVal)}</div><div class="kpi-detail">${recv.length} deliveries logged</div></div>
-    <div class="kpi amber"><div class="kpi-label">Low Stock Items</div><div class="kpi-val">${low}</div><div class="kpi-detail">need restocking</div></div>`;
-
-  // Stock vs Par
-  const topItems=items.slice(0,10);
-  if(chartPar)chartPar.destroy();
-  chartPar=new Chart(document.getElementById('chart-par'),{
-    type:'bar',
-    data:{labels:topItems.map(i=>i.name.length>12?i.name.slice(0,12)+'…':i.name),datasets:[
-      {label:'On Hand',data:topItems.map(i=>i.qty),backgroundColor:'rgba(232,67,42,0.75)',borderRadius:4},
-      {label:'Par',data:topItems.map(i=>i.par),backgroundColor:'rgba(212,168,67,0.3)',borderRadius:4}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8b95a5',font:{family:'Inter',size:12}}}},scales:{x:{ticks:{color:'#8b95a5',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#8b95a5'},grid:{color:'rgba(255,255,255,0.04)'}}}}
-  });
-
-  // Waste by category
-  const wasteByCat={};
-  waste.forEach(w=>{const it=items.find(i=>i.id===w.itemId);const cat=it?.category||'Other';wasteByCat[cat]=(wasteByCat[cat]||0)+w.cost;});
-  const wCats=Object.keys(wasteByCat);
-  if(chartWasteChart)chartWasteChart.destroy();
-  chartWasteChart=new Chart(document.getElementById('chart-waste'),{
-    type:'doughnut',
-    data:{labels:wCats,datasets:[{data:wCats.map(c=>wasteByCat[c]),backgroundColor:wCats.map(c=>CAT_COLORS[c]||'#8b95a5'),borderWidth:0,hoverOffset:8}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#8b95a5',font:{family:'Inter',size:12},padding:14}},tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+fmtCur(ctx.raw)}}}}
-  });
-
-  // Inventory value by category
-  const catVals=CATS.map(c=>({cat:c,val:items.filter(i=>i.category===c).reduce((s,i)=>s+i.qty*i.cost,0)})).filter(d=>d.val>0);
-  if(chartValue)chartValue.destroy();
-  chartValue=new Chart(document.getElementById('chart-value'),{
-    type:'bar',
-    data:{labels:catVals.map(d=>d.cat),datasets:[{label:'Value ($)',data:catVals.map(d=>d.val),backgroundColor:catVals.map(d=>CAT_COLORS[d.cat]||'#8b95a5'),borderRadius:6}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtCur(ctx.raw)}}},scales:{x:{ticks:{color:'#8b95a5',callback:v=>'$'+v},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#8b95a5'},grid:{color:'rgba(255,255,255,0.04)'}}}}
-  });
-}
-
-// ── Settings ──────────────────────────────────────────────────────
-function renderSettings(){
-  if(currentRole!=='manager')return;
-  const pins=load('pins',null)||{manager:'9999',staff:'1234'};
-  document.getElementById('mgr-pin').value=pins.manager;
-  document.getElementById('staff-pin').value=pins.staff;
-  const savedCats=load('categories',CATS);
-  document.getElementById('cat-list').innerHTML=savedCats.map(c=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">
-      <span style="width:10px;height:10px;border-radius:50%;background:${CAT_COLORS[c]||'#8b95a5'};flex-shrink:0"></span>
-      <span style="flex:1;font-size:13px">${c}</span>
-    </div>`).join('');
-  const savedReasons=load('reasons',WASTE_REASONS);
-  document.getElementById('reason-list').innerHTML=savedReasons.map(r=>`<span class="badge badge-red" style="font-size:12px;padding:4px 10px">${r}</span>`).join('');
-}
-function savePins(){
-  const mp=document.getElementById('mgr-pin').value.trim();
-  const sp=document.getElementById('staff-pin').value.trim();
-  const msg=document.getElementById('pin-save-msg');
-  if(!/^\d{4}$/.test(mp)||!/^\d{4}$/.test(sp)){msg.style.color='var(--red)';msg.textContent='PINs must be exactly 4 digits.';return;}
-  save('pins',{manager:mp,staff:sp});
-  msg.style.color='var(--green)';msg.textContent='PINs updated successfully.';
-  setTimeout(()=>{msg.textContent='';},3000);
-}
-function addCategory(){
-  const name=prompt('New category name:');
-  if(!name?.trim())return;
-  const cats=load('categories',CATS);cats.push(name.trim());save('categories',cats);renderSettings();
-}
-function addReason(){
-  const r=prompt('New waste reason:');
-  if(!r?.trim())return;
-  const reasons=load('reasons',WASTE_REASONS);reasons.push(r.trim());save('reasons',reasons);renderSettings();
-}
-
-// ── Item Modal ─────────────────────────────────────────────────────
 function openItemModal(id){
   editingId=id||null;
-  const items=getItems();const it=id?items.find(i=>i.id===id):null;
-  document.getElementById('item-modal-title').textContent=id?'Edit Item':'Add Item';
-  document.getElementById('item-id').value=id||'';
-  document.getElementById('f-name').value=it?.name||'';
-  document.getElementById('f-unit').value=it?.unit||'lbs';
-  document.getElementById('f-par').value=it?.par??'';
-  document.getElementById('f-onhand').value=it?.qty??'';
-  document.getElementById('f-cost').value=it?.cost??'';
-  document.getElementById('f-cat').innerHTML=CATS.map(c=>`<option value="${c}"${it?.category===c?' selected':''}>${c}</option>`).join('');
-  document.getElementById('item-modal').classList.add('open');
+  const cats=S.get('categories')||[];
+  document.getElementById('f-cat').innerHTML=cats.map(c=>`<option>${c}</option>`).join('');
+  if(id){
+    const item=itemById(id); if(!item)return;
+    document.getElementById('item-modal-title').textContent='Edit Item';
+    document.getElementById('item-delete-btn').style.display='';
+    document.getElementById('f-name').value=item.name;
+    document.getElementById('f-cat').value=item.cat;
+    document.getElementById('f-unit').value=item.unit;
+    document.getElementById('f-par').value=item.par;
+    document.getElementById('f-onhand').value=item.onhand;
+    document.getElementById('f-cost').value=item.cost;
+  } else {
+    document.getElementById('item-modal-title').textContent='Add Item';
+    document.getElementById('item-delete-btn').style.display='none';
+    ['f-name','f-unit','f-par','f-onhand','f-cost'].forEach(x=>document.getElementById(x).value='');
+  }
+  openModal('item-modal');
 }
 function saveItem(){
-  const items=getItems();
-  const name=document.getElementById('f-name').value.trim();
-  const category=document.getElementById('f-cat').value;
-  const unit=document.getElementById('f-unit').value.trim()||'ea';
-  const par=parseFloat(document.getElementById('f-par').value);
-  const qty=parseFloat(document.getElementById('f-onhand').value);
-  const cost=parseFloat(document.getElementById('f-cost').value)||0;
-  if(!name||isNaN(par)||isNaN(qty)){alert('Name, par level, and on hand qty are required.');return;}
-  if(editingId){
-    const idx=items.findIndex(i=>i.id===editingId);
-    if(idx>-1)items[idx]={...items[idx],name,category,unit,par,qty,cost};
-  } else {
-    const prefixes=['PRO','DAI','PRD','DRY','SWR','CHM'];
-    const prefix=prefixes[CATS.indexOf(category)]||'OTH';
-    const newId=items.length?Math.max(...items.map(i=>i.id))+1:1;
-    items.push({id:newId,name,category,unit,par,qty,cost,sku:prefix+'-'+String(newId).padStart(3,'0')});
-  }
-  save('items',items);
-  closeModal('item-modal');
-  renderInventory();
-  lucide.createIcons();
+  const name=document.getElementById('f-name').value.trim(); if(!name)return alert('Item name required.');
+  const items=S.get('items')||[];
+  const obj={id:editingId||uid(),name,cat:document.getElementById('f-cat').value,unit:document.getElementById('f-unit').value.trim()||'each',par:+document.getElementById('f-par').value||0,onhand:+document.getElementById('f-onhand').value||0,cost:+document.getElementById('f-cost').value||0};
+  if(editingId){const idx=items.findIndex(i=>i.id===editingId);if(idx>=0)items[idx]=obj;}
+  else{items.push(obj);addActivity('package','Added item: '+name)}
+  S.set('items',items); closeModal('item-modal'); renderInventory();
+}
+function deleteItem(){
+  if(!editingId||!confirm('Delete this item?'))return;
+  S.set('items',(S.get('items')||[]).filter(i=>i.id!==editingId));
+  closeModal('item-modal'); renderInventory();
+}
+function printInventory(){window.print()}
+
+// ── Receiving ────────────────────────────────────────────────────────────
+function renderReceiving(){
+  const recs=(S.get('receiving')||[]).slice().reverse();
+  document.getElementById('recv-body').innerHTML=recs.map(r=>{
+    const item=itemById(r.item);
+    return`<tr><td>${fmtDateTime(r.date)}</td><td>${item?item.name:r.item}</td><td>${r.qty}</td><td>${item?item.unit:''}</td><td>${r.vendor||'—'}</td><td>${fmtCur(r.cost)}</td><td>${r.po||'—'}</td><td>${r.loggedBy||'—'}</td></tr>`;
+  }).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--text-dim);padding:24px">No deliveries logged.</td></tr>';
+}
+function openReceiveModal(){
+  const items=S.get('items')||[];
+  document.getElementById('r-item').innerHTML=items.map(i=>`<option value="${i.id}">${i.name} (${i.unit})</option>`).join('');
+  ['r-qty','r-vendor','r-cost','r-po','r-note'].forEach(x=>document.getElementById(x).value='');
+  openModal('receive-modal');
+}
+function saveReceive(){
+  const itemId=document.getElementById('r-item').value;
+  const qty=+document.getElementById('r-qty').value; if(!qty)return alert('Enter quantity received.');
+  const recs=S.get('receiving')||[];
+  recs.push({id:uid(),date:new Date().toISOString(),item:itemId,qty,vendor:document.getElementById('r-vendor').value.trim(),cost:+document.getElementById('r-cost').value||0,po:document.getElementById('r-po').value.trim(),note:document.getElementById('r-note').value.trim(),loggedBy:currentRole==='manager'?'Manager':'Staff'});
+  S.set('receiving',recs);
+  const items=S.get('items')||[], idx=items.findIndex(i=>i.id===itemId);
+  if(idx>=0){items[idx].onhand=+(items[idx].onhand+qty).toFixed(2);S.set('items',items)}
+  const item=itemById(itemId);
+  addActivity('truck',`Received ${qty} ${item?item.unit:''} ${item?item.name:''}`);
+  closeModal('receive-modal'); renderReceiving();
 }
 
-// ── Modal helpers ──────────────────────────────────────────────────
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.addEventListener('DOMContentLoaded',()=>{
-  document.querySelectorAll('.modal-overlay').forEach(m=>{
-    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
-  });
-});
+// ── Waste ────────────────────────────────────────────────────────────────
+function renderWaste(){
+  const waste=(S.get('waste')||[]).slice().reverse();
+  document.getElementById('waste-body').innerHTML=waste.map(w=>{
+    const item=itemById(w.item);
+    return`<tr><td>${fmtDateTime(w.date)}</td><td>${item?item.name:w.item}</td><td>${w.qty}</td><td>${item?item.unit:''}</td><td>${w.reason}</td><td>${fmtCur(item?item.cost*w.qty:0)}</td><td>${w.loggedBy||'—'}</td></tr>`;
+  }).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:24px">No waste logged.</td></tr>';
+}
+function openWasteModal(){
+  const items=S.get('items')||[];
+  document.getElementById('w-item').innerHTML=items.map(i=>`<option value="${i.id}">${i.name} (${i.unit})</option>`).join('');
+  document.getElementById('w-reason').innerHTML=(S.get('wasteReasons')||[]).map(r=>`<option>${r}</option>`).join('');
+  document.getElementById('w-qty').value='';
+  openModal('waste-modal');
+}
+function saveWaste(){
+  const itemId=document.getElementById('w-item').value;
+  const qty=+document.getElementById('w-qty').value; if(!qty)return alert('Enter quantity wasted.');
+  const reason=document.getElementById('w-reason').value;
+  const waste=S.get('waste')||[];
+  waste.push({id:uid(),date:new Date().toISOString(),item:itemId,qty,reason,loggedBy:currentRole==='manager'?'Manager':'Staff'});
+  S.set('waste',waste);
+  const items=S.get('items')||[], idx=items.findIndex(i=>i.id===itemId);
+  if(idx>=0){items[idx].onhand=Math.max(0,+(items[idx].onhand-qty).toFixed(2));S.set('items',items)}
+  const item=itemById(itemId);
+  addActivity('trash-2',`Waste: ${qty} ${item?item.unit:''} ${item?item.name:''} (${reason})`);
+  closeModal('waste-modal'); renderWaste();
+}
 
-// ── Init ──────────────────────────────────────────────────────────
-(function init(){
-  if(!localStorage.getItem('angies_items'))initSeed();
-  setRole('manager');
-  if(typeof lucide!=='undefined')lucide.createIcons();
-})();
+// ── Scheduling ───────────────────────────────────────────────────────────
+function getWeekStart(off){const d=new Date();d.setDate(d.getDate()-d.getDay()+off*7);d.setHours(0,0,0,0);return d}
+function renderScheduling(){
+  const ws=getWeekStart(schedWeekOffset), we=new Date(ws); we.setDate(we.getDate()+6);
+  const opt={month:'short',day:'numeric'};
+  document.getElementById('sched-week-label').textContent=`${ws.toLocaleDateString('en-US',opt)} – ${we.toLocaleDateString('en-US',opt)}`;
+  document.getElementById('sched-sub').textContent=`Week of ${ws.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const shifts=(S.get('shifts')||[]).filter(s=>s.week===schedWeekOffset);
+  const roles=S.get('roles')||[];
+  let html='<div class="sched-th">Position</div>';
+  for(let d=0;d<7;d++){const dt=new Date(ws);dt.setDate(dt.getDate()+d);html+=`<div class="sched-th">${days[d]}<br><span style="font-weight:400;font-size:10px">${dt.toLocaleDateString('en-US',opt)}</span></div>`}
+  roles.forEach(role=>{
+    html+=`<div class="sched-label sched-row">${role.name}${role.training?'<span class="badge badge-purple" style="font-size:9px;margin-left:4px">T</span>':''}</div>`;
+    for(let d=0;d<7;d++){
+      const ds=shifts.filter(s=>s.position===role.id&&s.day===d);
+      const chips=ds.map(s=>`<span class="shift-chip ${role.training?'training':'regular'}" onclick="event.stopPropagation();openShiftModal('${role.id}',${d},'${s.id}')">${s.employee.split(' ')[0]} ${fmtTime(s.start)}</span>`).join('');
+      html+=`<div class="sched-cell sched-row" onclick="openShiftModal('${role.id}',${d})">${chips}<div class="sched-add">+</div></div>`;
+    }
+  });
+  // Headcount row
+  const ntRoles=roles.filter(r=>!r.training).map(r=>r.id);
+  html+='<div class="sched-label" style="font-weight:700;background:var(--bg-hover)">Headcount</div>';
+  for(let d=0;d<7;d++){const c=shifts.filter(s=>ntRoles.includes(s.position)&&s.day===d).length;html+=`<div class="sched-cell" style="background:var(--bg-hover);cursor:default;display:flex;align-items:center;justify-content:center;font-weight:600">${c||''}</div>`}
+  document.getElementById('sched-grid').innerHTML=html; icons();
+}
+function prevWeek(){schedWeekOffset--;renderScheduling()}
+function nextWeek(){schedWeekOffset++;renderScheduling()}
+function openShiftModal(roleId,day,shiftId){
+  editingId=shiftId||null;
+  const roles=S.get('roles')||[];
+  document.getElementById('sh-position').innerHTML=roles.map(r=>`<option value="${r.id}">${r.name}${r.training?' (Training)':''}</option>`).join('');
+  document.getElementById('sh-position').value=roleId;
+  document.getElementById('sh-day').innerHTML=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((d,i)=>`<option value="${i}">${d}</option>`).join('');
+  document.getElementById('sh-day').value=day;
+  if(shiftId){
+    const s=(S.get('shifts')||[]).find(s=>s.id===shiftId);
+    if(s){document.getElementById('sh-employee').value=s.employee;document.getElementById('sh-start').value=s.start;document.getElementById('sh-end').value=s.end;document.getElementById('shift-modal-title').textContent='Edit Shift';document.getElementById('shift-delete-btn').style.display=''}
+  } else {
+    document.getElementById('sh-employee').value='';document.getElementById('sh-start').value='09:00';document.getElementById('sh-end').value='17:00';
+    document.getElementById('shift-modal-title').textContent='Add Shift';document.getElementById('shift-delete-btn').style.display='none';
+  }
+  openModal('shift-modal');
+}
+function saveShift(){
+  const employee=document.getElementById('sh-employee').value.trim(); if(!employee)return alert('Employee name required.');
+  const shifts=S.get('shifts')||[];
+  const obj={id:editingId||uid(),position:document.getElementById('sh-position').value,day:+document.getElementById('sh-day').value,employee,start:document.getElementById('sh-start').value,end:document.getElementById('sh-end').value,week:schedWeekOffset};
+  if(editingId){const idx=shifts.findIndex(s=>s.id===editingId);if(idx>=0)shifts[idx]=obj}else shifts.push(obj);
+  S.set('shifts',shifts); closeModal('shift-modal'); renderScheduling();
+}
+function deleteShift(){
+  if(!editingId||!confirm('Remove this shift?'))return;
+  S.set('shifts',(S.get('shifts')||[]).filter(s=>s.id!==editingId));
+  closeModal('shift-modal'); renderScheduling();
+}
+
+// ── Vendors ──────────────────────────────────────────────────────────────
+function renderVendors(){
+  const vendors=S.get('vendors')||[];
+  document.getElementById('vendor-grid').innerHTML=vendors.map(v=>`
+    <div class="vendor-card">
+      <div class="vendor-name">${v.name}</div>
+      <div class="vendor-detail"><i data-lucide="user"></i>${v.contact||'—'}</div>
+      <div class="vendor-detail"><i data-lucide="phone"></i>${v.phone||'—'}</div>
+      <div class="vendor-detail"><i data-lucide="mail"></i>${v.email||'—'}</div>
+      <div class="vendor-detail"><i data-lucide="tag"></i>${v.cats||'—'}</div>
+      ${currentRole==='manager'?`<div class="vendor-actions"><button class="btn btn-secondary btn-sm" onclick="openVendorModal('${v.id}')"><i data-lucide="pencil"></i>Edit</button></div>`:''}
+    </div>`).join('')||'<div style="color:var(--text-dim);font-size:13px">No vendors added.</div>';
+  icons();
+}
+function openVendorModal(id){
+  editingId=id||null;
+  if(id){
+    const v=vendorById(id); if(!v)return;
+    document.getElementById('vendor-modal-title').textContent='Edit Vendor';
+    document.getElementById('vendor-delete-btn').style.display='';
+    document.getElementById('v-name').value=v.name;document.getElementById('v-contact').value=v.contact||'';
+    document.getElementById('v-phone').value=v.phone||'';document.getElementById('v-email').value=v.email||'';
+    document.getElementById('v-address').value=v.address||'';document.getElementById('v-cats').value=v.cats||'';
+  } else {
+    document.getElementById('vendor-modal-title').textContent='Add Vendor';
+    document.getElementById('vendor-delete-btn').style.display='none';
+    ['v-name','v-contact','v-phone','v-email','v-address','v-cats'].forEach(x=>document.getElementById(x).value='');
+  }
+  openModal('vendor-modal');
+}
+function saveVendor(){
+  const name=document.getElementById('v-name').value.trim(); if(!name)return alert('Vendor name required.');
+  const vendors=S.get('vendors')||[];
+  const obj={id:editingId||uid(),name,contact:document.getElementById('v-contact').value.trim(),phone:document.getElementById('v-phone').value.trim(),email:document.getElementById('v-email').value.trim(),address:document.getElementById('v-address').value.trim(),cats:document.getElementById('v-cats').value.trim()};
+  if(editingId){const idx=vendors.findIndex(v=>v.id===editingId);if(idx>=0)vendors[idx]=obj}
+  else{vendors.push(obj);addActivity('building-2','Added vendor: '+name)}
+  S.set('vendors',vendors); closeModal('vendor-modal'); renderVendors();
+}
+function deleteVendor(){
+  if(!editingId||!confirm('Delete this vendor?'))return;
+  S.set('vendors',(S.get('vendors')||[]).filter(v=>v.id!==editingId));
+  closeModal('vendor-modal'); renderVendors();
+}
+
+// ── Purchase Orders ───────────────────────────────────────────────────────
+function renderPOs(){
+  const pos=(S.get('pos')||[]).slice().reverse();
+  document.getElementById('po-body').innerHTML=pos.map(po=>{
+    const v=vendorById(po.vendor);
+    const sc=po.status==='Received'?'badge-green':po.status==='Submitted'?'badge-blue':'badge-gray';
+    return`<tr><td><strong>${po.num}</strong></td><td>${fmtDate(po.date)}</td><td>${v?v.name:po.vendor}</td><td>${po.lines.length} items</td><td>${fmtCur(po.total)}</td><td><span class="badge ${sc}">${po.status}</span></td><td>${po.status!=='Received'&&currentRole==='manager'?`<button class="btn btn-success btn-sm" onclick="receivePO('${po.id}')"><i data-lucide="check"></i>Receive</button>`:''}</td></tr>`;
+  }).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:24px">No purchase orders.</td></tr>';
+  icons();
+}
+function openPOModal(){
+  const vendors=S.get('vendors')||[];
+  document.getElementById('po-vendor').innerHTML=vendors.map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+  document.getElementById('po-date').value='';document.getElementById('po-notes').value='';
+  document.getElementById('po-lines').innerHTML='';document.getElementById('po-est-total').textContent='$0.00';
+  addPOLine(); openModal('po-modal');
+}
+function addPOLine(){
+  const items=S.get('items')||[];
+  const div=document.createElement('div'); div.className='po-line';
+  div.innerHTML=`<select class="form-control po-item" onchange="updatePOTotal()">${items.map(i=>`<option value="${i.id}">${i.name}</option>`).join('')}</select><input class="form-control po-qty" type="number" value="1" min="1" oninput="updatePOTotal()"><input class="form-control po-cost" type="number" placeholder="Cost $" step="0.01" oninput="updatePOTotal()"><button class="btn-icon" onclick="this.closest('.po-line').remove();updatePOTotal()"><i data-lucide="x"></i></button>`;
+  document.getElementById('po-lines').appendChild(div); icons();
+}
+function updatePOTotal(){
+  let t=0;document.querySelectorAll('.po-line').forEach(l=>{t+=(+l.querySelector('.po-cost').value||0)*(+l.querySelector('.po-qty').value||0)});
+  document.getElementById('po-est-total').textContent=fmtCur(t);
+}
+function savePO(){
+  const vendor=document.getElementById('po-vendor').value;
+  const lines=[];let total=0;
+  document.querySelectorAll('.po-line').forEach(l=>{
+    const itemId=l.querySelector('.po-item').value, qty=+l.querySelector('.po-qty').value||0, cost=+l.querySelector('.po-cost').value||0;
+    if(itemId&&qty){lines.push({item:itemId,qty,cost});total+=cost*qty}
+  });
+  if(!lines.length)return alert('Add at least one line item.');
+  const pos=S.get('pos')||[];
+  const num='PO-'+String(pos.length+1).padStart(3,'0');
+  pos.push({id:uid(),num,vendor,date:document.getElementById('po-date').value||new Date().toISOString().slice(0,10),status:'Submitted',lines,total,notes:document.getElementById('po-notes').value.trim()});
+  S.set('pos',pos);
+  addActivity('file-plus',`${num} submitted to ${vendorById(vendor)?.name||'vendor'}`);
+  closeModal('po-modal'); renderPOs();
+}
+function receivePO(poId){
+  if(!confirm('Mark as received and update inventory?'))return;
+  const pos=S.get('pos')||[], po=pos.find(p=>p.id===poId); if(!po)return;
+  po.status='Received'; S.set('pos',pos);
+  const items=S.get('items')||[];
+  po.lines.forEach(l=>{const idx=items.findIndex(i=>i.id===l.item);if(idx>=0)items[idx].onhand=+(items[idx].onhand+l.qty).toFixed(2)});
+  S.set('items',items);
+  addActivity('check',`${po.num} received — inventory updated`);
+  renderPOs();
+}
+
+// ── Recipes ──────────────────────────────────────────────────────────────
+function calcRecipeCost(r){return(S.get('items')||[]).reduce((s,item)=>{const ing=r.ingredients.find(g=>g.itemId===item.id);return s+(ing?item.cost*ing.qty:0)},0)}
+function calcAllRecipeCosts(){const recs=S.get('recipes')||[];recs.forEach(r=>r.cost=calcRecipeCost(r));S.set('recipes',recs)}
+function renderRecipes(){
+  calcAllRecipeCosts();
+  const recs=S.get('recipes')||[];
+  const q=(document.getElementById('rec-search')||{}).value?.toLowerCase()||'';
+  const filtered=recs.filter(r=>!q||r.name.toLowerCase().includes(q)||r.category.toLowerCase().includes(q));
+  document.getElementById('recipe-grid').innerHTML=filtered.map(r=>`
+    <div class="recipe-card" onclick="openRecipeModal('${r.id}')">
+      <div class="recipe-name">${r.name}</div>
+      <div class="recipe-meta">${r.category} · Yield: ${r.yieldQty} ${r.yieldUnit}</div>
+      <div class="recipe-cost">${fmtCur(r.cost)} / portion</div>
+    </div>`).join('')||'<div style="color:var(--text-dim);font-size:13px">No recipes found.</div>';
+  icons();
+}
+function openRecipeModal(id){
+  editingId=id||null;
+  document.getElementById('rec-ingredients').innerHTML='';
+  if(id){
+    const r=(S.get('recipes')||[]).find(r=>r.id===id); if(!r)return;
+    document.getElementById('recipe-modal-title').textContent='Edit Recipe';
+    document.getElementById('recipe-delete-btn').style.display='';
+    document.getElementById('rec-name').value=r.name;document.getElementById('rec-category').value=r.category;
+    document.getElementById('rec-yield-qty').value=r.yieldQty;document.getElementById('rec-yield-unit').value=r.yieldUnit;
+    document.getElementById('rec-instructions').value=r.instructions||'';
+    r.ingredients.forEach(ing=>addRecipeIngredient(ing));
+  } else {
+    document.getElementById('recipe-modal-title').textContent='Add Recipe';
+    document.getElementById('recipe-delete-btn').style.display='none';
+    ['rec-name','rec-yield-unit','rec-instructions'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('rec-yield-qty').value=1;
+    document.getElementById('rec-cost-calc').textContent='';
+    addRecipeIngredient();
+  }
+  openModal('recipe-modal'); updateRecipeCostCalc();
+}
+function addRecipeIngredient(ing){
+  const items=S.get('items')||[];
+  const div=document.createElement('div'); div.className='ing-row';
+  div.innerHTML=`<select class="form-control ing-item" onchange="updateRecipeCostCalc()">${items.map(i=>`<option value="${i.id}"${ing&&ing.itemId===i.id?' selected':''}>${i.name}</option>`).join('')}</select><input class="form-control ing-qty" type="number" value="${ing?ing.qty:1}" min="0.001" step="0.001" oninput="updateRecipeCostCalc()"><input class="form-control ing-unit" value="${ing?ing.unit:''}" placeholder="unit"><button class="btn-icon" onclick="this.closest('.ing-row').remove();updateRecipeCostCalc()"><i data-lucide="x"></i></button>`;
+  document.getElementById('rec-ingredients').appendChild(div); icons();
+}
+function updateRecipeCostCalc(){
+  const items=S.get('items')||[]; let t=0;
+  document.querySelectorAll('.ing-row').forEach(row=>{const item=items.find(i=>i.id===row.querySelector('.ing-item').value);if(item)t+=item.cost*(+row.querySelector('.ing-qty').value||0)});
+  document.getElementById('rec-cost-calc').textContent=t>0?`Est. ${fmtCur(t)}/portion`:'';
+}
+function saveRecipe(){
+  const name=document.getElementById('rec-name').value.trim(); if(!name)return alert('Recipe name required.');
+  const ingredients=[];
+  document.querySelectorAll('.ing-row').forEach(row=>{const itemId=row.querySelector('.ing-item').value,qty=+row.querySelector('.ing-qty').value||0,unit=row.querySelector('.ing-unit').value.trim();if(itemId&&qty)ingredients.push({itemId,qty,unit})});
+  const recipes=S.get('recipes')||[];
+  const obj={id:editingId||uid(),name,category:document.getElementById('rec-category').value,yieldQty:+document.getElementById('rec-yield-qty').value||1,yieldUnit:document.getElementById('rec-yield-unit').value.trim()||'portion',ingredients,instructions:document.getElementById('rec-instructions').value.trim(),cost:0};
+  obj.cost=calcRecipeCost(obj);
+  if(editingId){const idx=recipes.findIndex(r=>r.id===editingId);if(idx>=0)recipes[idx]=obj}
+  else{recipes.push(obj);addActivity('chef-hat','Added recipe: '+name)}
+  S.set('recipes',recipes); closeModal('recipe-modal'); renderRecipes();
+}
+function deleteRecipe(){
+  if(!editingId||!confirm('Delete this recipe?'))return;
+  S.set('recipes',(S.get('recipes')||[]).filter(r=>r.id!==editingId));
+  closeModal('recipe-modal'); renderRecipes();
+}
+
+// ── Temp Logs ────────────────────────────────────────────────────────────
+function renderTempLogs(){
+  const logs=(S.get('tempLogs')||[]).slice().reverse();
+  document.getElementById('temp-body').innerHTML=logs.map(t=>{
+    const st=stationById(t.station);
+    return`<tr><td>${fmtDateTime(t.ts)}</td><td>${st?st.name:t.station}</td><td style="font-weight:600;color:${t.flag?'var(--red)':'var(--text)'}">${t.reading}°F</td><td>${st?`${st.min}–${st.max}°F`:'—'}</td><td>${t.flag?'<span class="badge badge-red">Out of Range</span>':'<span class="badge badge-green">OK</span>'}</td><td>${t.loggedBy||'—'}</td></tr>`;
+  }).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:24px">No readings logged.</td></tr>';
+}
+function openTempModal(){
+  const stations=S.get('tempStations')||[];
+  document.getElementById('t-station').innerHTML=stations.map(s=>`<option value="${s.id}">${s.name} (${s.min}–${s.max}°F)</option>`).join('');
+  document.getElementById('t-reading').value='';document.getElementById('t-logged-by').value='';
+  openModal('temp-modal');
+}
+function saveTempLog(){
+  const stationId=document.getElementById('t-station').value;
+  const reading=document.getElementById('t-reading').value;
+  if(reading==='')return alert('Enter a temperature reading.');
+  const st=stationById(stationId);
+  const flag=st?(+reading<st.min||+reading>st.max):false;
+  const logs=S.get('tempLogs')||[];
+  logs.push({id:uid(),station:stationId,reading:+reading,loggedBy:document.getElementById('t-logged-by').value.trim()||'—',ts:new Date().toISOString(),flag});
+  S.set('tempLogs',logs);
+  if(flag)addActivity('thermometer',`Temp flag: ${st?st.name:'station'} at ${reading}°F`);
+  closeModal('temp-modal'); renderTempLogs();
+}
+
+// ── Cleaning ─────────────────────────────────────────────────────────────
+function renderCleaning(){
+  const tasks=S.get('cleaning')||[];
+  const areas=[...new Set(tasks.map(t=>t.area))];
+  document.getElementById('cleaning-sections').innerHTML=areas.map(area=>{
+    const at=tasks.filter(t=>t.area===area), done=at.filter(t=>t.done).length;
+    return`<div class="card" style="margin-bottom:12px"><div class="card-head"><span class="card-title">${area}</span><span class="badge badge-${done===at.length?'green':'amber'}">${done}/${at.length}</span></div><div>${at.map(t=>`<div class="clean-task"><div class="clean-check${t.done?' done':''}" onclick="toggleCleanTask('${t.id}')">${t.done?'<i data-lucide="check"></i>':''}</div><span class="clean-task-name${t.done?' done':''}">${t.name}</span><span class="clean-by">${t.freq}${t.doneBy?' · '+t.doneBy:''}</span></div>`).join('')}</div></div>`;
+  }).join('')||'<div style="color:var(--text-dim);font-size:13px">No tasks defined.</div>';
+  icons();
+}
+function toggleCleanTask(id){
+  const tasks=S.get('cleaning')||[], t=tasks.find(t=>t.id===id); if(!t)return;
+  t.done=!t.done; t.doneBy=t.done?(currentRole==='manager'?'Manager':'Staff'):'';
+  S.set('cleaning',tasks); renderCleaning();
+}
+function resetCleaning(){
+  if(!confirm('Reset all cleaning tasks for today?'))return;
+  const tasks=S.get('cleaning')||[];
+  tasks.forEach(t=>{t.done=false;t.doneBy=''});
+  S.set('cleaning',tasks); renderCleaning();
+}
+function openCleanTaskModal(){
+  ['ct-name','ct-area'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('ct-freq').value='Daily';
+  openModal('clean-task-modal');
+}
+function saveCleanTask(){
+  const name=document.getElementById('ct-name').value.trim(); if(!name)return alert('Task name required.');
+  const tasks=S.get('cleaning')||[];
+  tasks.push({id:uid(),name,area:document.getElementById('ct-area').value.trim()||'General',freq:document.getElementById('ct-freq').value,done:false,doneBy:''});
+  S.set('cleaning',tasks); closeModal('clean-task-modal'); renderCleaning();
+}
+
+// ── Prep Sheets ──────────────────────────────────────────────────────────
+function renderPrepSheets(){
+  const prep=S.get('prep')||[], isM=currentRole==='manager';
+  document.getElementById('prep-body').innerHTML=prep.map(p=>{
+    const status=p.completed>=p.needed?'<span class="badge badge-green">Done</span>':p.completed>0?'<span class="badge badge-amber">In Progress</span>':'<span class="badge badge-gray">Pending</span>';
+    return`<tr><td><strong>${p.name}</strong></td><td>${p.unit}</td><td>${p.needed}</td>
+      <td><input type="number" class="form-control" value="${p.completed}" min="0" step="0.5" style="width:72px" onchange="updatePrepCompleted('${p.id}',this.value)"></td>
+      <td><input class="form-control" value="${p.initials}" placeholder="Init." style="width:58px" onchange="updatePrepInitials('${p.id}',this.value)"></td>
+      <td>${status}</td>
+      ${isM?`<td><button class="btn-icon" onclick="deletePrepItem('${p.id}')"><i data-lucide="trash-2"></i></button></td>`:''}
+    </tr>`;
+  }).join('')||`<tr><td colspan="${isM?7:6}" style="text-align:center;color:var(--text-dim);padding:24px">No prep items.</td></tr>`;
+  icons();
+}
+function updatePrepCompleted(id,val){const p=(S.get('prep')||[]).find(p=>p.id===id);if(p){p.completed=+val;S.set('prep',S.get('prep'))}}
+function updatePrepInitials(id,val){const prep=S.get('prep')||[], p=prep.find(p=>p.id===id);if(p){p.initials=val;S.set('prep',prep)}}
+function openPrepItemModal(){
+  ['pi-name','pi-unit'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('pi-needed').value=0;
+  openModal('prep-item-modal');
+}
+function savePrepItem(){
+  const name=document.getElementById('pi-name').value.trim(); if(!name)return alert('Item name required.');
+  const prep=S.get('prep')||[];
+  prep.push({id:uid(),name,unit:document.getElementById('pi-unit').value.trim()||'each',needed:+document.getElementById('pi-needed').value||0,completed:0,initials:''});
+  S.set('prep',prep); closeModal('prep-item-modal'); renderPrepSheets();
+}
+function deletePrepItem(id){
+  if(!confirm('Remove this prep item?'))return;
+  S.set('prep',(S.get('prep')||[]).filter(p=>p.id!==id)); renderPrepSheets();
+}
+
+// ── Incidents ────────────────────────────────────────────────────────────
+function renderIncidents(){
+  const incidents=S.get('incidents')||[];
+  const types=['All','Employee','Customer','Food Safety'];
+  document.getElementById('inc-filters').innerHTML=types.map(t=>`<button class="pill${activeIncFilter===t?' active':''}" onclick="setIncFilter('${t}')">${t}</button>`).join('');
+  const filtered=activeIncFilter==='All'?incidents:incidents.filter(i=>i.type===activeIncFilter);
+  document.getElementById('inc-body').innerHTML=filtered.slice().reverse().map(i=>{
+    const sc=i.severity==='High'?'badge-red':i.severity==='Medium'?'badge-amber':'badge-blue';
+    return`<tr><td>${fmtDateTime(i.date)}</td><td>${i.type}</td><td><span class="badge ${sc}">${i.severity}</span></td>
+      <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.description}</td>
+      <td>${i.reportedBy||'—'}</td><td><span class="badge badge-${i.status==='Open'?'amber':'green'}">${i.status}</span></td>
+      <td>${i.status==='Open'?`<button class="btn btn-success btn-sm" onclick="resolveIncident('${i.id}')"><i data-lucide="check"></i>Resolve</button>`:''}</td></tr>`;
+  }).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:24px">No incidents logged.</td></tr>';
+  icons();
+}
+function setIncFilter(f){activeIncFilter=f;renderIncidents()}
+function openIncidentModal(){
+  ['inc-description','inc-reported-by'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('inc-type').value='Employee';document.getElementById('inc-severity').value='Low';
+  openModal('incident-modal');
+}
+function saveIncident(){
+  const desc=document.getElementById('inc-description').value.trim(); if(!desc)return alert('Description required.');
+  const type=document.getElementById('inc-type').value, sev=document.getElementById('inc-severity').value;
+  const incidents=S.get('incidents')||[];
+  incidents.push({id:uid(),type,severity:sev,description:desc,reportedBy:document.getElementById('inc-reported-by').value.trim()||'—',date:new Date().toISOString(),status:'Open'});
+  S.set('incidents',incidents);
+  addActivity('alert-triangle',`Incident logged: ${type} / ${sev}`);
+  closeModal('incident-modal'); renderIncidents();
+}
+function resolveIncident(id){
+  const incidents=S.get('incidents')||[], inc=incidents.find(i=>i.id===id); if(!inc)return;
+  inc.status='Resolved'; S.set('incidents',incidents);
+  addActivity('check',`Incident resolved: ${inc.type}`); renderIncidents();
+}
+
+// ── Reports ──────────────────────────────────────────────────────────────
+function renderReports(){
+  const items=S.get('items')||[], waste=S.get('waste')||[], incidents=S.get('incidents')||[];
+  const totalVal=items.reduce((s,i)=>s+(i.onhand*i.cost),0);
+  const wasteCost=waste.reduce((s,w)=>{const item=itemById(w.item);return s+(item?item.cost*w.qty:0)},0);
+  document.getElementById('report-kpis').innerHTML=`
+    <div class="kpi"><div class="kpi-icon green"><i data-lucide="dollar-sign"></i></div><div class="kpi-val">${fmtCur(totalVal)}</div><div class="kpi-label">Inventory Value</div></div>
+    <div class="kpi"><div class="kpi-icon red"><i data-lucide="trash-2"></i></div><div class="kpi-val">${fmtCur(wasteCost)}</div><div class="kpi-label">Waste Cost</div></div>
+    <div class="kpi"><div class="kpi-icon amber"><i data-lucide="alert-circle"></i></div><div class="kpi-val">${items.filter(i=>i.onhand<i.par).length}</div><div class="kpi-label">Below Par</div></div>
+    <div class="kpi"><div class="kpi-icon red"><i data-lucide="alert-triangle"></i></div><div class="kpi-val">${incidents.filter(i=>i.status==='Open').length}</div><div class="kpi-label">Open Incidents</div></div>`;
+  const COLORS=['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#ea580c','#6366f1'];
+  const top10=[...items].sort((a,b)=>b.par-a.par).slice(0,10);
+  mkChart('chart-par','bar',{labels:top10.map(i=>i.name.length>12?i.name.slice(0,12)+'…':i.name),datasets:[{label:'On Hand',data:top10.map(i=>i.onhand),backgroundColor:'rgba(37,99,235,0.7)'},{label:'Par',data:top10.map(i=>i.par),backgroundColor:'rgba(203,213,225,0.7)'}]});
+  const wbcat={};waste.forEach(w=>{const item=itemById(w.item);if(item)wbcat[item.cat]=(wbcat[item.cat]||0)+(item.cost*w.qty)});
+  mkChart('chart-waste','doughnut',{labels:Object.keys(wbcat),datasets:[{data:Object.values(wbcat).map(v=>+v.toFixed(2)),backgroundColor:COLORS}]});
+  const vbcat={};items.forEach(i=>vbcat[i.cat]=(vbcat[i.cat]||0)+(i.onhand*i.cost));
+  mkChart('chart-value','doughnut',{labels:Object.keys(vbcat),datasets:[{data:Object.values(vbcat).map(v=>+v.toFixed(2)),backgroundColor:COLORS}]});
+  const ibt={};incidents.forEach(i=>ibt[i.type]=(ibt[i.type]||0)+1);
+  mkChart('chart-incidents','bar',{labels:Object.keys(ibt),datasets:[{label:'Count',data:Object.values(ibt),backgroundColor:'rgba(220,38,38,0.7)'}]});
+}
+function mkChart(id,type,data){
+  if(charts[id]){charts[id].destroy();delete charts[id]}
+  const ctx=document.getElementById(id); if(!ctx)return;
+  charts[id]=new Chart(ctx,{type,data,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:type==='doughnut',position:'bottom',labels:{boxWidth:12,font:{size:11}}}},scales:type==='bar'?{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}:undefined}});
+}
+
+// ── Settings ─────────────────────────────────────────────────────────────
+function renderSettings(){
+  const pins=S.get('pins')||SEED.pins;
+  document.getElementById('mgr-pin').value=pins.manager;
+  document.getElementById('staff-pin').value=pins.staff;
+  renderRoleList(); renderCatList(); renderWasteReasonList(); renderTempStationList();
+}
+function savePins(){
+  const mgr=document.getElementById('mgr-pin').value.trim(), staff=document.getElementById('staff-pin').value.trim();
+  const msg=document.getElementById('pin-save-msg');
+  if(!/^\d{4}$/.test(mgr)||!/^\d{4}$/.test(staff)){msg.innerHTML='<span style="color:var(--red)">PINs must be 4 digits.</span>';return}
+  S.set('pins',{manager:mgr,staff});
+  msg.innerHTML='<span style="color:var(--green)">Saved!</span>';
+  setTimeout(()=>msg.innerHTML='',2000);
+}
+function renderRoleList(){
+  const roles=S.get('roles')||[];
+  document.getElementById('role-list').innerHTML=roles.map(r=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px">${r.name}</span>${r.training?'<span class="badge badge-purple">Training</span>':''}</div>`).join('')||'<div style="color:var(--text-dim);font-size:13px">No positions.</div>';
+}
+function openRoleModal(){
+  document.getElementById('role-name').value='';document.getElementById('role-training').checked=false;
+  openModal('role-modal');
+}
+function saveRole(){
+  const name=document.getElementById('role-name').value.trim(); if(!name)return alert('Position name required.');
+  const roles=S.get('roles')||[];
+  roles.push({id:uid(),name,training:document.getElementById('role-training').checked});
+  S.set('roles',roles); closeModal('role-modal'); renderRoleList();
+}
+function renderCatList(){
+  const cats=S.get('categories')||[];
+  document.getElementById('cat-list').innerHTML=cats.map((c,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px">${c}</span><button class="btn-icon" onclick="deleteCategory(${i})"><i data-lucide="x"></i></button></div>`).join('')||'<div style="color:var(--text-dim);font-size:13px">No categories.</div>';
+  icons();
+}
+function addCategory(){const n=prompt('Category name:');if(!n?.trim())return;const cats=S.get('categories')||[];cats.push(n.trim());S.set('categories',cats);renderCatList()}
+function deleteCategory(idx){const cats=S.get('categories')||[];cats.splice(idx,1);S.set('categories',cats);renderCatList()}
+function renderWasteReasonList(){
+  const reasons=S.get('wasteReasons')||[];
+  document.getElementById('waste-reason-list').innerHTML=reasons.map((r,i)=>`<span class="badge badge-gray" style="gap:4px">${r}<button onclick="deleteWasteReason(${i})" style="background:none;border:none;cursor:pointer;padding:0;display:inline-flex;color:var(--text-dim)"><i data-lucide="x" style="width:10px;height:10px"></i></button></span>`).join('');
+  icons();
+}
+function addWasteReason(){const n=prompt('Waste reason:');if(!n?.trim())return;const r=S.get('wasteReasons')||[];r.push(n.trim());S.set('wasteReasons',r);renderWasteReasonList()}
+function deleteWasteReason(idx){const r=S.get('wasteReasons')||[];r.splice(idx,1);S.set('wasteReasons',r);renderWasteReasonList()}
+function renderTempStationList(){
+  const stations=S.get('tempStations')||[];
+  document.getElementById('temp-station-list').innerHTML=stations.map(s=>`<div class="temp-station-row"><span style="flex:1;font-weight:500">${s.name}</span><span style="color:var(--text-sub);font-size:12px">${s.min}–${s.max}°F</span></div>`).join('')||'<div style="color:var(--text-dim);font-size:13px">No stations defined.</div>';
+}
+function openTempStationModal(){
+  ['ts-name','ts-min','ts-max'].forEach(x=>document.getElementById(x).value='');
+  openModal('temp-station-modal');
+}
+function saveTempStation(){
+  const name=document.getElementById('ts-name').value.trim(); if(!name)return alert('Station name required.');
+  const stations=S.get('tempStations')||[];
+  stations.push({id:uid(),name,min:+document.getElementById('ts-min').value,max:+document.getElementById('ts-max').value});
+  S.set('tempStations',stations); closeModal('temp-station-modal'); renderTempStationList();
+}
+
+// ── Modals ───────────────────────────────────────────────────────────────
+function openModal(id){const el=document.getElementById(id);if(el){el.classList.add('open');icons()}}
+function closeModal(id){const el=document.getElementById(id);if(el)el.classList.remove('open');editingId=null}
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
+
+// ── Fix prep updatePrepCompleted ─────────────────────────────────────────
+// Override to correctly persist
+function updatePrepCompleted(id,val){
+  const prep=S.get('prep')||[], p=prep.find(p=>p.id===id);
+  if(p){p.completed=+val;S.set('prep',prep)}
+}
 </script>
 </body>
 </html>
